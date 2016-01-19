@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ "$1" == "-n" ] ; then
+  find . \( -name \*~  -o -name .\*~ \) -print
+else
+  find . \( -name \*~ -o -name .\*~ \) -exec rm \{\} \; -print
+fi
+

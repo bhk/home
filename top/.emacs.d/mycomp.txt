@@ -1,0 +1,66 @@
+* Introduction  -*-compilation-*-
+Compilation started at Sat Jul  8 15:19:25
+
+See also compilation.txt, "example file" in C-h C-v compilation-error-regexp-alist
+
+
+Assertion failed: (17 == itest_empty(o)), function mainInThread, file kserver_q.c, line 58.
+
+In file included from kprocess.c:3:
+which.c(8) : fatal error C1083: Cannot open include file: 'unistd.h': No such file or directory
+
+In file included from kprocess.c:3:0:
+foo.h: In function 'GCCIsAMovingTarget':
+foo.h:29:27: error: GCC version 4.6 now uses this format.
+
+blah: c:\Documents and Settings\user\x.c:39: blah
+blah: c:/Documents and Settings/user/x.c:39: blah
+c:\Documents and Settings\user\x.c:39: blah
+c:/Documents and Settings/user/x.c:39: blah
+c:/foo.c:39: blah
+blah: c:/foo.c:39: blah
+/foo.c:39: blah
+foo.c:39: blah
+../foo.c:39: blah
+blah /foo.c:23:0:4: blah
+blah foo.c:34:1:3:4: blah
+
+init.el:362:9:Warning: assignment to free variable `c-basic-offset'
+
+/Users/bkelley/p4/apiOne/main/build/tools/Darwin/lua/LUA: object_q.lua:15: assertion failed!
+stack traceback:
+	[C]: in function 'assert'
+	object_q.lua:15: in function 'fn'
+	object_q.lua:74: in main chunk
+	[C]: ?
+
+
+"tc.c", line 5: Serious error: C2284E: expected ';' after command - inserted before ')'
+"tc.c", line 5: Serious error: C2304E: <command> expected but found ')'
+
+
+foo.idl:1: Error: missing expected output line [(?-mix:12.7-11: unknown comment preset 'bogus')]
+foo.idl:1: Error: missing expected output line [(?-mix:13.7-12: unknown comment preset 'bogus2')]
+
+Bash: Match this:
+./runtest.sh: line 22: touchfile: command not found
+script.sh: line 1: 73293 Segmentation fault: 11  .built_/Exe/testInvoke
+  ... but not this:
+/bin/sh: line 1: 73293 Segmentation fault: 11  .built_/Exe/testInvoke
+
+----
+
+Node seems to always prefix user files with "/".
+
+/Users/bkelley/p/dev/js/myassert_q.js:3
+f)
+ ^
+
+node.js:134
+        throw e; // process.nextTick error, or 'error' event on first tick
+        ^
+ReferenceError: blah is not defined
+    at /Users/bkelley/foo.js:4:
+    at Object.CALL_NON_FUNCTION (native)
+    at Object.<anonymous> (/Users/bkelley/foo.js:4:1)
+    at Module._compile (module.js:402:26)

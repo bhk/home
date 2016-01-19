@@ -1,0 +1,13 @@
+#!/bin/bash
+
+DIR=~/phonepull
+
+adb start-server
+adb wait-for-device
+
+mkdir -p ${DIR}
+adb pull /sdcard/DCIM ${DIR} || ( echo 'adb pull failed!' && exit )
+
+mkdir -p ~/Pictures/phone
+mv ${DIR}/100MEDIA/*.jpg ~/Pictures/phone/
+rmdir ${DIR}/100MEDIA > /dev/null && rmdir ${DIR} || echo "NOTE: Extra data under ${DIR}"

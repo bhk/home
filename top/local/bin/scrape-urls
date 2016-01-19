@@ -1,0 +1,54 @@
+#!/usr/bin/env lua
+
+local fnames = {}
+local flags = {}
+local knownFlags = {
+   extern = true,
+   absolute = true,
+   queries = true,
+}
+
+for _, a in ipairs(arg) do
+   local f = a:match('^%-%-(.*)')
+   if f and knownFlags[f] then
+      flags[f] = true
+   elseif a:match('^-') then
+      print("Unknown flag: " .. a)
+      os.exit(1)
+   else
+      fnames[#fnames+1] = a
+   end
+end
+
+if #fnames ~= 1 then
+   print("Usage: scrape <file>")
+   os.exit(1)
+end
+
+local f = assert(io.open(fnames[1]))
+
+local urlSeen = {}
+local urls = {}
+
+for a in f:lines() do
+   repeat
+      local name, url, rest = a:match('(%w+) *= *"([^"]+)"(.*)')
+      if not name then
+         name, url, rest = a:match("(%w+) *= *'([^']+)'(.*)")
+      end
+      if not urlSeen[url] and (name == "src" or name == "href") then
+         urlSeen[url] = name
+         table.insert(urls, url)
+      end
+      a = rest
+   until not a
+end
+
+for _, url in pairs(urls) do
+   if (flags.queries or not url:match('^%?')) and
+      (flags.extern or not url:match('^[^/]:')) and
+      (flags.absolute or not url:match('^/')) then
+      
+          print(url)
+    end
+end

@@ -1,0 +1,15 @@
+[user]
+	name = Brian Kelley
+	email = bkelley@quicinc.com
+[color]
+	ui = auto
+[alias]
+	unstage = reset HEAD --
+	last = log -1 HEAD
+	st = status
+	co = checkout
+[push]
+	default = simple
+
+[branch]
+	autosetuprebase = always

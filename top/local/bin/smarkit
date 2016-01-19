@@ -1,0 +1,4 @@
+#!/bin/bash
+F="/tmp/$(basename -s .txt $1).$$.html"
+
+smark "$1" -o "$F" --no-default-css --css ~/.smark.css && open "$F"
