@@ -60,9 +60,10 @@
         (print "Creating directory: " (dir dest))
         (shell (concat "mkdir -p " (dir dest)))))
 
-  (if (and (exists? dest)
-           (not (is-symlink? dest)))
-      (print "AVOIDING " target " (remove pre-existing file first)")
+  (if (exists? dest)
+      (if (is-symlink? dest)
+          (print "Skipping " target " (already a symlink)")
+          (print "AVOIDING " target " (remove pre-existing file first)"))
       (begin
         (shell (concat "ln -fs " (relpath (dir dest) top) "/" target " " dest))
         (print "Installed " target))))
@@ -96,10 +97,11 @@
            (action (concat HOME "/" f) f)))
 
 
-(define rules "help install uninstall")
+(define rules "help show install uninstall")
 
 (define (build rule)
   (cond ((eq rule "help") (print help-str))
+        ((eq rule "show") (visit-files (lambda (a b) (print a " --> " b))))
         ((eq rule "install") (visit-files install-file))
         ((eq rule "uninstall") (visit-files uninstall-file))))
 

@@ -107,7 +107,7 @@ if [ "$OSTYPE" = "cygwin" ]; then
   export P4EDITOR="$EDITOR"
 fi
 
-alias ls="ls -GF"
+alias ls="ls -F"
 
 # recycle
 re() {

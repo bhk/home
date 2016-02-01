@@ -72,11 +72,11 @@ relpath = $(call ~concat-vec,$(call vec-relpath,$(call ~split,/,$(abspath $1)),$
 find-files = $(foreach name,$1,$(call ^Y,$(wildcard $(name)/.* $(name)/*),,,,,,,,,$$(if $$1,$$(call find-files,$$(filter-out %/.. %/.,$$1)),$$(name))))
 is-symlink? = $(shell if [ -L '$1' ] ; then echo 1 ; fi)
 help-str := Usage:$!   make help         Display this message$!   make install      Install symbolic links$!   make uninstall    Remove symbolic links
-install-file = $(and $(if $(if $(wildcard $(dir $1)),,1),$(and $(info Creating directory: $(dir $1))1,$(shell mkdir -p $(dir $1))))1,$(if $(and $(wildcard $1),$(if $(call is-symlink?,$1),,1)),$(info AVOIDING $2 (remove pre-existing file first)),$(and $(shell ln -fs $(call relpath,$(dir $1),$(top))/$2 $1)1,$(info Installed $2))))
+install-file = $(and $(if $(if $(wildcard $(dir $1)),,1),$(and $(info Creating directory: $(dir $1))1,$(shell mkdir -p $(dir $1))))1,$(if $(wildcard $1),$(if $(call is-symlink?,$1),$(info Skipping $2 (already a symlink)),$(info AVOIDING $2 (remove pre-existing file first))),$(and $(shell ln -fs $(call relpath,$(dir $1),$(top))/$2 $1)1,$(info Installed $2))))
 uninstall-file = $(if $(call is-symlink?,$1),$(and $(info Removing $1)1,$(shell rm $1)),$(if $(wildcard $1),$(info LEAVING $1 (not a symlink)),$(info Missing $1)))
 visit-files = $(foreach f,$(call ~append,$(filter-out $(addsuffix /%,$(linked-dirs)),$(patsubst $(top)/%,%,$(call find-files,$(top)))),$(linked-dirs)),$(call ^Y,$(HOME)/$f,$f,,,,,,,,$1))
-rules := help install uninstall
-build = $(if $(call ~eq,$1,help),$(info $(help-str)),$(if $(call ~eq,$1,install),$(call visit-files,$(value install-file)),$(if $(call ~eq,$1,uninstall),$(call visit-files,$(value uninstall-file)))))
+rules := help show install uninstall
+build = $(if $(call ~eq,$1,help),$(info $(help-str)),$(if $(call ~eq,$1,show),$(call visit-files,$$(info $$1 --> $$2)),$(if $(call ~eq,$1,install),$(call visit-files,$(value install-file)),$(if $(call ~eq,$1,uninstall),$(call visit-files,$(value uninstall-file))))))
 define main
 $(and $(foreach r,$(rules),$(eval $(subst X,$r,.PHONY: X
 X: ; @true $$(call build,X)
