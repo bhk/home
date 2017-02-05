@@ -15,7 +15,7 @@
 ;;
 (define (vec-relpath from to)
   (if (and from
-           (eq (first from) (first to)))
+           (eq? (first from) (first to)))
       (vec-relpath (rest from) (rest to))
       (append (for x from "..")
               to)))
@@ -123,10 +123,10 @@ Modify the `linked-dirs` variable in make.scm to change this.
 (define rules "help show install uninstall")
 
 (define (build rule)
-  (cond ((eq rule "help") (print help-str))
-        ((eq rule "show") (visit-files (lambda (a b) (print a " --> " b))))
-        ((eq rule "install") (visit-files install-file))
-        ((eq rule "uninstall") (visit-files uninstall-file))))
+  (cond ((eq? rule "help") (print help-str))
+        ((eq? rule "show") (visit-files (lambda (a b) (print a " --> " b))))
+        ((eq? rule "install") (visit-files install-file))
+        ((eq? rule "uninstall") (visit-files uninstall-file))))
 
 
 (define (main args)
