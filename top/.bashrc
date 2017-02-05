@@ -56,6 +56,13 @@ if [ -z "$BASHRC_ONCE" ] ; then
         do
            if [ -d "$P" ] ; then PATH="$P:$PATH" ; fi
         done
+
+        # Add GHC 7.10.3 to the PATH, via https://ghcformacosx.github.io/
+        export GHC_DOT_APP="/Applications/ghc-7.10.3.app"
+        if [ -d "$GHC_DOT_APP" ]; then
+          export PATH="${HOME}/.local/bin:${HOME}/.cabal/bin:${GHC_DOT_APP}/Contents/bin:${PATH}"
+        fi
+
     elif [ "$OSTYPE" = "cygwin" ]; then
         export TMPDIR="/tmp"
         export PATH="$HOME/local/bin:$PATH"
@@ -74,6 +81,7 @@ fi
 #--------------------------------
 # Every time
 #--------------------------------
+
 if [ "$OSTYPE" = "cygwin" ]; then
   # Ignore CRs, and make sure this is set for every shell.
   # Set BASH_ENV to ensure this gets set when running shell scripts.
@@ -180,17 +188,12 @@ cds() {
   fi
 }
 
-alias luai="lua -l ix -i"
+# host-specific interactive settings
 
-# MacPorts location of git:
-if [ "$EMACS" != "t" -a -f /usr/local/git/contrib/completion/git-completion.bash ]; then
-  . /usr/local/git/contrib/completion/git-completion.bash
+if [ -f ~/.bashrc-local-i ]; then
+    . ~/.bashrc-local-i
 fi
 
 if [ "$TERM" == "dumb" ] ; then
    export NODE_NO_READLINE=1
 fi
-
-# host-specific interactive settings
-
-alias vce="python ~/local/bin/vce/vce.py"

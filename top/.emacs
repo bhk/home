@@ -10,8 +10,7 @@
              (print (concat "Compiled " elc))
            (error "Failed compiling %s" elc)))))
 
-(push edir load-path)  ;; needed by byte-compile-file
+(push (concat edir "/lisp") load-path)  ;; needed by byte-compile-file
 (mapcar 'freshen-elc (directory-files edir t "elc$"))
 
 (load (concat edir "/init"))
-

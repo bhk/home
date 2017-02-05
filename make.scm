@@ -46,11 +46,34 @@
 
 ;;----------------  Install/Uninstall  ----------------
 
-(define help-str
+(define help-raw
   "Usage:
    make help         Display this message
    make install      Install symbolic links
-   make uninstall    Remove symbolic links")
+   make uninstall    Remove symbolic links
+
+The `top` directory contains an image of files to be propagated to your
+$HOME directory.
+
+Instead of copying the files, `make install` creates symbolic links so that
+this repository can be easily updated using git.  `make install` avoids
+removing files or links that already exist; you may have to manually remove
+some files in order to deploy the ones in this project.  Also, you can
+manually replace a symbolic link with a copy in order to maintain the local
+$HOME directory in a state that diverges from the project (e.g. work
+machines vs. personal machines).
+
+In some cases, symbolic links are created to directories rather than
+individual files.  This can make it easier to track files that are added to
+those directories and propagate changes back into this project.  Linked
+directories are: LDIRS
+
+Modify the `linked-dirs` variable in make.scm to change this.
+")
+
+(define `help-str
+  (subst "LDIRS" (foreach d linked-dirs (subst "D" d "\n   ~/D/"))
+         help-raw))
 
 ;; Create a symbolic link from dest to rel
 ;;

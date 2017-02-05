@@ -71,12 +71,15 @@ vec-relpath = $(if $(and $1,$(call ~eq,$(call ^u,$(word 1,$1)),$(call ^u,$(word 
 relpath = $(call ~concat-vec,$(call vec-relpath,$(call ~split,/,$(abspath $1)),$(call ~split,/,$(abspath $2))),/)
 find-files = $(foreach name,$1,$(call ^Y,$(wildcard $(name)/.* $(name)/*),,,,,,,,,$$(if $$1,$$(call find-files,$$(filter-out %/.. %/.,$$1)),$$(name))))
 is-symlink? = $(shell if [ -L '$1' ] ; then echo 1 ; fi)
-help-str := Usage:$!   make help         Display this message$!   make install      Install symbolic links$!   make uninstall    Remove symbolic links
+help-raw := Usage:$!   make help         Display this message$!   make install      Install symbolic links$!   make uninstall    Remove symbolic links$!$!The `top` directory contains an image of files to be propagated to your$!$$HOME directory.$!$!Instead of copying the files, `make install` creates symbolic links so that$!this repository can be easily updated using git.  `make install` avoids$!removing files or links that already exist; you may have to manually remove$!some files in order to deploy the ones in this project.  Also, you can$!manually replace a symbolic link with a copy in order to maintain the local$!$$HOME directory in a state that diverges from the project (e.g. work$!machines vs. personal machines).$!$!In some cases, symbolic links are created to directories rather than$!individual files.  This can make it easier to track files that are added to$!those directories and propagate changes back into this project.  Linked$!directories are: LDIRS$!$!Modify the `linked-dirs` variable in make.scm to change this.$!
 install-file = $(and $(if $(if $(wildcard $(dir $1)),,1),$(and $(info Creating directory: $(dir $1))1,$(shell mkdir -p $(dir $1))))1,$(if $(wildcard $1),$(if $(call is-symlink?,$1),$(info Skipping $2 (already a symlink)),$(info AVOIDING $2 (remove pre-existing file first))),$(and $(shell ln -fs $(call relpath,$(dir $1),$(top))/$2 $1)1,$(info Installed $2))))
 uninstall-file = $(if $(call is-symlink?,$1),$(and $(info Removing $1)1,$(shell rm $1)),$(if $(wildcard $1),$(info LEAVING $1 (not a symlink)),$(info Missing $1)))
 visit-files = $(foreach f,$(call ~append,$(filter-out $(addsuffix /%,$(linked-dirs)),$(patsubst $(top)/%,%,$(call find-files,$(top)))),$(linked-dirs)),$(call ^Y,$(HOME)/$f,$f,,,,,,,,$1))
 rules := help show install uninstall
-build = $(if $(call ~eq,$1,help),$(info $(help-str)),$(if $(call ~eq,$1,show),$(call visit-files,$$(info $$1 --> $$2)),$(if $(call ~eq,$1,install),$(call visit-files,$(value install-file)),$(if $(call ~eq,$1,uninstall),$(call visit-files,$(value uninstall-file))))))
+define build
+$(if $(call ~eq,$1,help),$(info $(subst LDIRS,$(foreach d,$(linked-dirs),$(subst D,$d,
+   ~/D/)),$(help-raw))),$(if $(call ~eq,$1,show),$(call visit-files,$$(info $$1 --> $$2)),$(if $(call ~eq,$1,install),$(call visit-files,$(value install-file)),$(if $(call ~eq,$1,uninstall),$(call visit-files,$(value uninstall-file))))))
+endef
 define main
 $(and $(foreach r,$(rules),$(eval $(subst X,$r,.PHONY: X
 X: ; @true $$(call build,X)

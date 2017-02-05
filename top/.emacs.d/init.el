@@ -507,7 +507,7 @@ lines for new window."
                 ("\\.mk\\'" . makefile-gmake-mode)
                 ("[Mm]akefile\\'" . makefile-gmake-mode)
                 ("scam\\'" . makefile-gmake-mode)
-                ("SConscript\\'" . python-mode)
+                ("SCons[criptu]+t\\'" . python-mode)
                 ("Package\\'" . makefile-gmake-mode)
                 ("^\\.config\\'" . makefile-gmake-mode)
                 ("\\.lua\\'" . lua-mode)
@@ -598,7 +598,31 @@ names.  Customize with `cwdtrack-regexp'."
   (add-hook 'shell-mode-hook 'shell-dirtrack-mode))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Construct review comments
 
+(defvar review-buffer nil)
+
+(defun review-add-comment ()
+  (interactive)
+  (let* ((file (buffer-file-name))
+         (line (line-number-at-pos))
+         (dummy (or (and review-buffer
+                         (buffer-live-p review-buffer))
+                    (setq review-buffer
+                          (find-file-noselect
+                           (read-file-name "File for review comments: "
+                                           (file-name-directory file)
+                                           "review.txt")))))
+         (review-file (buffer-file-name review-buffer))
+         (rfile (file-relative-name file
+                                    (file-name-directory review-file))))
+
+    (switch-to-buffer-other-window review-buffer)
+    (end-of-buffer)
+    (insert (format "\n%s:%d: " rfile line))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; save-and-make: faster, better, cheaper
 
 (defvar save-and-make-command "make")
@@ -670,6 +694,7 @@ names.  Customize with `cwdtrack-regexp'."
 (global-set-key "\C-z\C-j" 'tree-hyperjump)
 (global-set-key "\C-zg"    'c-grep)
 (global-set-key "\C-z\C-o" 'p4-offline)
+(global-set-key "\C-z\C-a" 'review-add-comment)
 
 
 ;; The dreaded "delete sends ^H" problem...

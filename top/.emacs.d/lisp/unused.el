@@ -198,7 +198,7 @@ regex FROM."
     (while (< pos len)
       (let* ((matchpos (string-match from str pos))
 	     (prematch (substring str pos matchpos)))
-	
+
 	(if matchpos
 	    (progn
 	      (setq result (concat result prematch to))
@@ -292,7 +292,7 @@ regex FROM."
 that names the project, and each value is a project description.
 Each project description is in turn an alist, with the following
 keys defined:
-   
+
    files, tags, tagdirs: see `proj-add'
    activate: function to be called when project is activated (invoked
              with one parameter: the project description itself)
@@ -322,7 +322,7 @@ matching regexps from the 'files' value of PDESC."
     TAGS     = TAGS file name to be selected with project is activated
     TAGDIRS  = string or list of directories containing sources for
                the TAGS files (also used for proj-find-file)
-    MISC     = alist to be added to the project description.  See 
+    MISC     = alist to be added to the project description.  See
                `proj-alist' for more info."
   (add-to-list 'proj-alist
 	       (cons name
@@ -448,7 +448,7 @@ file-then-directory with completion."
 	    (cdar alist)
 	  ;; else query user
 	  (let ((input (completing-read prompt alist nil t)))
-	    ;; Look up and return dir/name  
+	    ;; Look up and return dir/name
 	    (cdr (assoc input alist)))))))
 
 (defun proj-find-file (proj &optional fname)
@@ -492,4 +492,3 @@ to the current directory, the current project will be searched.  (See
 	(if (file-exists-p filename)
 	    (find-file filename)
 	  (proj-find-file nil filename)))))
-

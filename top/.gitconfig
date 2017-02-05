@@ -8,6 +8,7 @@
 	last = log -1 HEAD
 	st = status
 	co = checkout
+	lg = log --oneline --graph -10
 [push]
 	default = simple
 

@@ -88,7 +88,7 @@
 (eval-when-compile
   (defvar root (expand-file-name "/a"))
   (setq tt (treespec-parse "...\n-b/...\n&....(c|h)" root))
-  
+
   (assert (fp "/a/x.c"))
   (assert (fp "/a/b.h"))
   (assert (not (fp "/a/b/x.c")))
@@ -139,4 +139,3 @@
   (assert-equal '(2 4 6)
                 (select (lambda (n) (= 0 (mod n 2)))
                         '(1 2 3 4 5 6 7))))
-  
