@@ -1,9 +1,25 @@
 ;; init.el
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;  Appearance settings  ;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defvar my-host (or (getenv "COMPUTERNAME") (system-name)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Utilities
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Return first list item for which (pred item) is truthy.
+(defun findcar (pred lst)
+  (if lst
+      (if (funcall pred (car lst))
+          (car lst)
+        (findcar pred (cdr lst)))))
+
+(defun printf (&rest a)
+  (princ (concat (apply 'format a)) "\n"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Environment
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar my-host
+  (or (getenv "COMPUTERNAME") (system-name)))
 
 (eval-when-compile (require 'cl))
 
@@ -13,213 +29,44 @@
 (when (>= emacs-major-version 22)
   (set-variable 'inhibit-splash-screen t))
 
-;; Use "emacs -f bigfont" for large font; harmless when not supported.
-(defun bigfont() )
-(defun change-font( &optional key) )
+(defun my-zoom-frame (up-down))
 
 (when (fboundp 'window-system)
 
-  (if (fboundp 'tool-bar-mode)
-    (tool-bar-mode 0))
+  ;; frame properties
+  (add-to-list 'default-frame-alist '(width  . 80))
+  (add-to-list 'default-frame-alist '(height . 47))
+  (add-to-list 'default-frame-alist '(tool-bar-lines . 0))
 
-  (if (fboundp 'w32-select-font)
-      (defun select-font ()
-        (interactive)
-        (set-default-font (w32-select-font))))
+  ;; my-zoom-frame
+  (defvar my-default-size 14)
+  (defvar my-size my-default-size)
 
-  (defvar dflt-fonts
-        '(("6x13"    "-*-6x13-normal-r-*-*-13-97-*-*-c-*-*-ansi-" 16)
-          ("6x11"    "-*-6x11-normal-r-*-*-11-97-*-*-c-*-*-ansi-" 14)
-          ("term8"   "-*-Terminal-normal-r-*-*-11-100-*-*-c-*-*-*-" 8)
-          ("term9"   "-*-Terminal-normal-r-*-*-12-90-*-*-c-*-*-*-" 12)
-          ("luc8"    "-*-Lucida Console-normal-r-*-*-11-82-*-*-c-*-*-ansi-" 11)
-          ("luc9"    "-*-Lucida Console-normal-r-*-*-12-90-*-*-c-*-*-ansi-" 12)
-          ("luc6n"   "-*-Lucida Console-medium-r-*-*-9-*-*-*-C-65-IS08859-" 9)
-          ("luc7n"   "-*-Lucida Console-medium-r-*-*-10-*-*-*-C-65-IS08859-" 10)
-          ("luc8n"   "-*-Lucida Console-medium-r-*-*-11-82-*-*-C-60-ISO8859-" 11)
-          ("luc10"   "-*-Lucida Console-normal-r-*-*-13-97-*-*-c-*-*-ansi-" 13)
-          ("luc12"   "-*-Lucida Console-normal-r-*-*-15-97-*-*-c-*-*-ansi-" 15)
-          ("deja18"  "-unknown-DejaVu Sans Mono-normal-normal-normal-*-18-*-*-*-m-0-iso10646-1")
-          ("deja15"  "-unknown-DejaVu Sans Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1")
-          ("deja13"  "-unknown-DejaVu Sans Mono-normal-normal-normal-*-13-*-*-*-m-0-iso10646-1")
-          ("deja11"  "-unknown-DejaVu Sans Mono-normal-normal-normal-*-11-*-*-*-m-0-iso10646-1")
-          ("src13"   "-apple-Source_Code_Pro-medium-normal-normal-*-13-*-*-*-m-0-iso10646-1")
-          ("src18"   "-apple-Source_Code_Pro-medium-normal-normal-*-18-*-*-*-m-0-iso10646-1")
-          ("hack13"  "-*-Hack-medium-normal-normal-*-13-*-*-*-m-0-iso10646-1")
-          ("hack18"  "-*-Hack-medium-normal-normal-*-18-*-*-*-m-0-iso10646-1")
-          ("menlo13" "-apple-Menlo-medium-normal-normal-*-13-*-*-*-m-0-iso10646-1")
-          ("and12"   "-*-Andale Mono-*" 15)))
+  (defun my-zoom-frame (up-down)
+    (setq my-size (if (= 0 up-down)
+                      my-default-size
+                    (+ my-size up-down)))
+    ;; t => preserve window size
+    (set-frame-font (format "%d" my-size) t)
+    (message (format "Size: %d" my-size)))
 
-  (defun change-font (&optional key)
-    "Select font by short name, set default font, and preserve frame size."
-    (interactive);; "sFont name: ")
-    (let ((pixel-hgt (* (frame-height) (frame-char-height))))
-      (if (null key)
-	  (setq key (completing-read "Font: " dflt-fonts nil t)))
-      ;; Font height, as of 20.6 (?):  (elt (font-info FONTNAME) 4)
-      (let ((scm (assoc key dflt-fonts)))
-	(when scm
-	  (set-default-font (elt scm 1))
-	  (set-frame-height nil (round (/ (float pixel-hgt) (frame-char-height))))))))
+  (defun dark ()
+    (interactive)
+    (customize-set-variable 'custom-enabled-themes '(dark)))
 
-  ;; Choose default based on computer name
-  (let ((font-assoc (assoc my-host
-			   '(("SEDITION" "luc9")
-			     ("BKELLEY1" "luc7n")
-			     ("u64" "deja11")
-			     ("BKELLEY" "luc8")))))
-    (if font-assoc (change-font (cadr font-assoc))))
-
-  ; (set-screen-width 118)
-
-  (defun bigfont ()
-    (change-font "luc12")))
+  (defun light ()
+    (interactive)
+    (customize-set-variable 'custom-enabled-themes '(light))))
 
 
-;; X font names:
+;; Dump environment info
 ;;
-;; -foundry-family-weight-slant-setwidth-addstyle-pxsize-ptsize-resx-resy-spacing-avgwid-charset-encoding
-;;
-;;   weight = medium | bold | ...
-;;   slant = R | I | O | ...
-;;   setwidth = Normal | Condensed | Narrow | Double Wide
-;;   addstyle = Serif | Sans Serif | Informal | Decorated
-;;   pxsize = pixel size, incorporating vertial spacing part of font design
-;;   spacing = P | M | C   [proportional, monospaced, character cell]
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;       Font-lock       ;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Tip: "M-x list-faces-display <RET>"
-(require 'font-lock)
-
-(with-no-warnings
-  ;; security concerns re: shell mode behavior
-  (setq tramp-mode nil))
-
-(defun turn-on-font-lock ()
-  (font-lock-mode 1))
-
-(defun my-lua-mode-hook ()
-  (local-set-key "\C-cl" 'lua-send-region))
-
-(add-hook 'lua-mode-hook      'turn-on-font-lock)
-(add-hook 'makefile-mode-hook 'turn-on-font-lock)
-(add-hook 'lisp-mode-hook     'turn-on-font-lock)
-(add-hook 'perl-mode-hook     'turn-on-font-lock)
-(add-hook 'tex-mode-hook      'turn-on-font-lock)
-(add-hook 'texinfo-mode-hook  'turn-on-font-lock)
-(add-hook 'emacs-lisp-mode-hook 'turn-on-font-lock)
-
-(add-hook 'shell-mode-hook    'accept-process-output)
-(add-hook 'lua-mode-hook      'my-lua-mode-hook)
-
-(defun deface (sym fg bg)
-  (set-face-foreground sym fg)
-  (set-face-background sym bg))
-
-(defun colorscheme-green-on-black ()
-  "Choose green-on-black color scheme."
-  (interactive)
-  (set-background-color    "black")
-  (set-foreground-color    "#ffff60")
-  (set-foreground-color    "#80ff60")
-  (set-cursor-color        "yellow")
-
-  (deface 'font-lock-variable-name-face "#ffff60"         "black")
-  (deface 'font-lock-function-name-face "white"           "black")
-  (deface 'font-lock-comment-face       "#c0c080"         "black")
-  (deface 'font-lock-string-face        "turquoise1"      "black")
-  (deface 'font-lock-keyword-face       "light goldenrod" "black")
-  (deface 'font-lock-type-face          "gray"           "black")
-
-  (set-face-background 'region "grey25"))
-
-(defun colorscheme-wheat ()
-  ;; Default colors
-  (interactive)
-  (set-background-color    "#f8ffec")
-  (set-foreground-color    "black")
-  (set-cursor-color        "#8080a0")
-
-  (when (boundp 'default-frame-alist)
-    (add-to-list 'default-frame-alist '(background-color . "#f8ffec")))
-
-  (if (>= emacs-major-version 22)
-    (custom-set-faces
-     ;; custom-set-faces was added by Custom.
-     ;; If you edit it by hand, you could mess it up, so be careful.
-     ;; Your init file should contain only one such instance.
-     ;; If there is more than one, they won't work right.
-     '(font-lock-builtin-face ((((class color) (min-colors 88) (background light)) (:foreground "red4"))))
-     '(font-lock-comment-face ((((class color) (min-colors 88) (background light)) (:foreground "CadetBlue4"))))
-     '(font-lock-function-name-face ((((class color) (min-colors 88) (background light)) (:foreground "blue3"))))
-     '(font-lock-keyword-face ((((class color) (min-colors 88) (background light)) (:foreground "green4"))))
-     '(font-lock-string-face ((((class color) (min-colors 88) (background light)) (:foreground "burlywood4"))))
-     ;; makefile-mode uses variable-name-face a lot
-
-     '(font-lock-variable-name-face ((((class color) (min-colors 88) (background light)) (:foreground "SpringGreen4")))))))
-
-;; Color scheme notes
-;;
-;; 'xterm-color' (Mac terminal) has a limited palette; nearest match can be ugly.
-;;
-
-(eval-when-compile
-  (require 'ispell)) ;; avoid "free variable" warnings
-
-(eval-after-load 'ispell
-  (setq ispell-program-name "aspell"
-        ispell-dictionary "english"
-        ispell-personal-dictionary "/Users/bkelley/.aspell.pws"
-        ispell-extra-args (list (concat "--home-dir=" (expand-file-name "~/")))
-        ispell-dictionary-alist))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;   Misc. Utilities   ;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun printf (&rest a)
-  (princ (concat (apply 'format a)) "\n"))
-
-(require 'tree)
-(require 'p4utils)
-(autoload 'lua-mode "lua-mode.el" "" t)
-(autoload 'ruby-mode "ruby-mode.el" "" t)
-
-(setq scroll-step 1)
-
-(defun single-up ()   (interactive) (scroll-down 1))
-(defun single-down () (interactive) (scroll-up 1))
-
-(defun get-region-string ()
-  (buffer-substring (region-beginning) (region-end)))
-
-(defun fromhex-region ()
-  "Convert selection from hex number to decimal number"
-  (interactive)
-  (let ((dec (string-to-number (get-region-string) 16)))
-    (kill-region (region-beginning) (region-end))
-    (insert (number-to-string dec))))
-
-(defun eurodate ()
-  "bhk ??-95: Generate DD-Mon-YY date string for today."
-  (let ((time (current-time-string)))
-    (concat
-     (substring time 8 10) "-" (substring time 4 7) "-" (substring time -2))))
-
-(defun dos()
-  "Select DOS newlines (see 'unix')"
-  (interactive)
-  (set-buffer-file-coding-system 'iso-latin-1-dos))
-
-(defun unix()
-  "Select UNIX newlines (see 'dos')"
-  (interactive)
-  (set-buffer-file-coding-system 'iso-latin-1-unix))
+;; EmacsForMacOSX
+;;    window-system: ns
+;;    process-environment: USER, SHELL, HOME, TERM=dumb
+;; Linux, in SSH session from mintty in Cygwin 1.7
+;;    window-system: nil
+;;    process-environment: SSH_CONNECTION, SSH_TTY, SSH_CLIENT, HOSTNAME
 
 (defun dump-env ()
   "Dump misc. environment information"
@@ -228,60 +75,19 @@
        (insert (format "\n%s: %S" e (eval e)))))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Environment
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defvar in-mac
-  (string-match "darwin" system-configuration)
-  "t when running on a Mac (GUI or terminal)")
-
-(defvar in-mac-gui
-  (eq window-system 'ns)
-  "t when running in EmacsForMacOSX GUI app")
-
-;;;; Emacs.app (emacsformacosx.com)
-;
-; window-system: ns
-; emacs-major-e
-; (length (defined-colors)): 42
-; process-environment: USER, SHELL, HOME, TERM=dumb
-; system-configuration: "x86_64-apple-darwin"
-; (version): "GNU Emacs 23.4.1 (x86_64-apple-darwin, NS apple-appkit-1038.36)\n of 2012-01-29 on bob.porkrind.org"
-
-;;;; Linux, in SSH session from mintty in Cygwin 1.7
-
-; window-system: nil
-; (length (defined-colors)): 8
-; process-environment: SSH_CONNECTION, SSH_TTY, SSH_CLIENT, "HOSTNAME=esxi-www.rwalker.com"
-; system-configuration: "i686-pc-linux-gnu"
-; (version): "GNU Emacs 23.1.1 (i686-pc-linux-gnu, GTK+ Version 2.18.9) of 2010-11-10 on c6b1.bsys.dev.centos.org"
-;
-;;;; Linux, in SSH session from Prompt (iPad)  [sends BACKSPACE!]
-
-
-
 ;; git uses less, which does the wrong thing in a dumb terminal
 (setenv "PAGER" "cat")
 
-;;;; emacsclient
-;;  /usr/bin/emacs works with /usr/bin/emacsclient
-;;  emacsformacosx.com works with its own emacsclient
-(setenv "EDITOR" "emacsclient")
-(server-start)
-
-
-;; Mac apps run outside of bash or other user environment settings.
-(when in-mac-gui
+;; EmacsForMacOSX in GUI mode: Environment is not inherited from .bashrc.
+;;
+(when (eq window-system 'ns)
   (let ((app-bin "/Applications/Emacs.app/Contents/MacOS/bin")
         (PATH (getenv "PATH"))
         (HOME (getenv "HOME")))
 
-    (change-font "hack13")
-
     (setenv "P4CONFIG" ".p4")
 
-    ;; exec-path is used when launching programs.  aspell lives in ~/local/gin
+    ;; exec-path is used when launching programs.
     (add-to-list 'exec-path "/usr/local/bin")
     (add-to-list 'exec-path (concat HOME "/local/bin"))
 
@@ -296,16 +102,52 @@
         (setq default-directory
               (concat HOME "/")))))
 
+;; emacsclient
+;;   /usr/bin/emacs works with /usr/bin/emacsclient
+;;   emacsformacosx.com works with its own emacsclient
+(setenv "EDITOR" "emacsclient")
+(server-start)
 
-;; Pick color scheme
-(if in-mac-gui
-    (colorscheme-green-on-black)
-  (colorscheme-wheat))
+;; Ensure the subcommands (e.g. make spawned from 'compile') get my user
+;; environment settings, even on MacOS or Windows, where the GUI version of
+;; emacs is not spawned from a shell.
+;;
+(setenv "BASH_ENV" (concat (getenv "HOME") "/.bashrc"))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;  Code-related utilities and conveniences  ;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Custom features
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(require 'tree)
+(require 'p4utils)
+
+(defun single-up ()
+  (interactive) (scroll-down 1))
+
+(defun single-down ()
+  (interactive) (scroll-up 1))
+
+(defun dos()
+  "Select DOS newlines (see 'unix')"
+  (interactive)
+  (set-buffer-file-coding-system 'iso-latin-1-dos))
+
+(defun unix()
+  "Select UNIX newlines (see 'dos')"
+  (interactive)
+  (set-buffer-file-coding-system 'iso-latin-1-unix))
+
+;; Kill just the active frame, unless there is only one frame.
+;;
+(defun kill-frame ()
+  (interactive)
+  (if (cdr (frame-list))
+      (delete-frame)
+    (if (fboundp 'save-buffers-kill-terminal)
+        (save-buffers-kill-terminal)
+      (save-buffers-kill-emacs))))
+
 
 ;; How did I get by without this?  26-Oct-95 bhk
 (defun other-window-prev ()
@@ -463,9 +305,10 @@ lines for new window."
 (when (boundp 'compilation-error-regexp-alist-alist)
   (setq compilation-error-regexp-alist-alist
 	(append my-regexp-alist-alist compilation-error-regexp-alist-alist))
- (setq compilation-error-regexp-alist '(asrt colons parens mybash armcc node node2
-						gcc-include gcov-file gcov-header gcov-nomark
-						gcov-called-line gcov-never-called)))
+  (setq compilation-error-regexp-alist
+        '(asrt colons parens mybash armcc node node2
+               gcc-include gcov-file gcov-header gcov-nomark
+               gcov-called-line gcov-never-called)))
 
 
 ;; shell
@@ -476,65 +319,10 @@ lines for new window."
     (shell (concat "*AltShell-" (number-to-string arg) "*")))
   (goto-char (point-max)))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;     Hooks, Bindings, Modes    ;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Revealing cryptic emacs key binding syntax:
-;;   1. Use global-set-key to bind a key
-;;   2. repeat-complex-command (C-x ESC eSC)
-
-;; Mac OSX Terminal notes:
-;;   alt/option + left  =>  ESC left   (NOT M-left)
-;;   fn + pretzel + Fx  =>  Fx
-
-;; see CC mode info
-(eval-when-compile (require 'cc-mode))
-(defun my-c-mode-common-hook ()
-  (setq tab-width 8
-        indent-tabs-mode nil        ; Use spaces instead of tabs
-        c-basic-offset 2)           ; mother of all indentation parameters
-  (turn-on-font-lock)
-  (define-key c-mode-base-map "\C-m" 'newline-and-indent))
-
-(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
-
-(setq auto-mode-alist
-      (append '(("\\.[ch]\\'" . c++-mode)
-		("\\.bid\\'" . c++-mode)
-                ("\\.min\\'" . makefile-gmake-mode)
-                ("\\.mak\\'" . makefile-gmake-mode)
-                ("\\.mk\\'" . makefile-gmake-mode)
-                ("[Mm]akefile\\'" . makefile-gmake-mode)
-                ("scam\\'" . makefile-gmake-mode)
-                ("SCons[criptu]+t\\'" . python-mode)
-                ("Package\\'" . makefile-gmake-mode)
-                ("^\\.config\\'" . makefile-gmake-mode)
-                ("\\.lua\\'" . lua-mode)
-                ("^pak\\'" . lua-mode)
-                ("\\.cif\\'" . lua-mode)
-                ("\\.rb\\'" . ruby-mode))
-              auto-mode-alist))
-
-(defun my-limode-hook ()
-  (local-set-key [C-return] 'eval-last-sexp))
-(add-hook 'lisp-interaction-mode-hook 'my-limode-hook)
-
-;; js2.el
-;(autoload 'js2-mode "js2" nil t)
-;(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
-
-;; Ensure the subcommands (e.g. make spawned from 'compile') get my user
-;; environment settings, even on MacOS or Windows, where the GUI version of
-;; emacs is not spawned from a shell.
-;;
-(setenv "BASH_ENV" (concat (getenv "HOME") "/.bashrc"))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+;;------------------------------
 ;; cwdtrack: like dirtrack, but not brain dead.  dirtrack hoses shell mode
 ;; badly if the prompt regexp matches something that isn't a directory.
-;;
+;;------------------------------
 
 (defvar cwdtrack-regexp
   ;; default:
@@ -597,8 +385,9 @@ names.  Customize with `cwdtrack-regexp'."
   ;; turn off default tracking
   (add-hook 'shell-mode-hook 'shell-dirtrack-mode))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;------------------------------
 ;; Construct review comments
+;;------------------------------
 
 (defvar review-buffer nil)
 
@@ -618,12 +407,12 @@ names.  Customize with `cwdtrack-regexp'."
                                     (file-name-directory review-file))))
 
     (switch-to-buffer-other-window review-buffer)
-    (end-of-buffer)
+    (goto-char (point-max))
     (insert (format "\n%s:%d: " rfile line))))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;------------------------------
 ;; save-and-make: faster, better, cheaper
+;;------------------------------
 
 (defvar save-and-make-command "make")
 (defun save-and-make (arg)
@@ -634,13 +423,117 @@ names.  Customize with `cwdtrack-regexp'."
       (setq save-and-make-command (read-string "Make command: " save-and-make-command)))
   (compile save-and-make-command))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Modes & Configurations
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq transient-mark-mode t)
+(setq truncate-partial-width-windows nil)
+(setq search-highlight t)
+(delete-selection-mode t)
+(setq scroll-step 1)
+(put 'eval-expression 'disabled nil)    ; M-:
+
+(require 'font-lock)
+(global-font-lock-mode t)
+
+(setq auto-mode-alist
+      (append '(("\\.[ch]\\'" . c++-mode)
+		("\\.bid\\'" . c++-mode)
+                ("\\.min\\'" . makefile-gmake-mode)
+                ("\\.mak\\'" . makefile-gmake-mode)
+                ("\\.mk\\'" . makefile-gmake-mode)
+                ("[Mm]akefile\\'" . makefile-gmake-mode)
+                ("scam\\'" . makefile-gmake-mode)
+                ("SCons[criptu]+t\\'" . python-mode)
+                ("Package\\'" . makefile-gmake-mode)
+                ("^\\.config\\'" . makefile-gmake-mode)
+                ("\\.lua\\'" . lua-mode)
+                ("^pak\\'" . lua-mode)
+                ("\\.cif\\'" . lua-mode)
+                ("\\.rb\\'" . ruby-mode))
+              auto-mode-alist))
+
+;; Spell checking
+
+(eval-when-compile
+  (require 'ispell)) ;; avoid "free variable" warnings
+
+(eval-after-load 'ispell
+  (if (executable-find "hunspell")
+      (progn
+        (setq-default ispell-program-name "hunspell")
+        (if (boundp 'ispell-really-hunspell)
+            (setq ispell-really-hunspell t)))
+    ;; Old MBP setup uses aspell.
+    (setq ispell-program-name "aspell"
+          ispell-dictionary "english"
+          ispell-personal-dictionary "/Users/bkelley/.aspell.pws"
+          ispell-extra-args (list (concat "--home-dir=" (expand-file-name "~/")))
+          ;; ispell-dictionary-alist
+          )))
 
 ;; "GDB mode"
+
 (defun my-gud-mode-hook ()
   (global-set-key [?\C-c ?\C-,] 'gud-up)
   (global-set-key [?\C-c ?\C-.] 'gud-down))
 
 (add-hook 'gud-mode-hook 'my-gud-mode-hook)
+
+;; Disable insecure shell mode behavior.
+(with-no-warnings
+  (setq tramp-mode nil))
+
+(defun my-lua-mode-hook ()
+  (local-set-key "\C-cl" 'lua-send-region))
+(add-hook 'lua-mode-hook 'my-lua-mode-hook)
+
+(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
+(add-hook 'shell-mode-hook 'accept-process-output)
+
+(autoload 'lua-mode "lua-mode.el" "" t)
+(autoload 'ruby-mode "ruby-mode.el" "" t)
+
+;; Delete trailing whitespace from lines before a file is saved.
+;; (unless we're editing a makefile)
+(defun clean-whitespace ()
+  (unless (string-match "^make" (symbol-name major-mode))
+    (delete-trailing-whitespace)))
+
+(add-hook 'before-save-hook 'clean-whitespace)
+
+;; C-mode
+
+(eval-when-compile (require 'cc-mode))
+(defun my-c-mode-common-hook ()
+  (setq tab-width 8
+        indent-tabs-mode nil        ; Use spaces instead of tabs
+        c-basic-offset 2)           ; mother of all indentation parameters
+  (font-lock-mode 1)
+  (define-key c-mode-base-map "\C-m" 'newline-and-indent))
+
+(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
+(defun my-limode-hook ()
+  (local-set-key [C-return] 'eval-last-sexp))
+(add-hook 'lisp-interaction-mode-hook 'my-limode-hook)
+
+
+(defun my-artist-mode-hook ()
+  (when (boundp 'artist-mode-map)
+    ;; button 3 = right button on two-button mouse
+    (define-key artist-mode-map [down-mouse-3] 'artist-mouse-choose-operation)))
+
+(add-hook 'artist-mode-init-hook 'my-artist-mode-hook)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Bindings
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Revealing cryptic emacs key binding syntax:
+;;   1. Use global-set-key to bind a key
+;;   2. repeat-complex-command (C-x ESC eSC)
 
 (define-key emacs-lisp-mode-map "\C-xx" 'edebug-defun)
 (define-key emacs-lisp-mode-map [C-return] 'eval-last-sexp)
@@ -665,106 +558,52 @@ names.  Customize with `cwdtrack-regexp'."
 (global-set-key "\C-xj" 'goto-line)
 (global-set-key "\C-x?" 'jump-to-register)
 (global-set-key "\C-x\C-g" 'grep)
+(global-set-key "\C-x\C-c" 'kill-frame)
 (global-set-key [f1] 'find-tag)
 (global-set-key [f2] 'tags-search)
 (global-set-key [f3] 'tags-loop-continue)
 (global-set-key [f7] 'compile)
-(if (>= emacs-major-version 23)
-    (progn
-      (global-set-key [?\C-=] 'text-scale-increase)
-      (global-set-key [?\C--] 'text-scale-decrease))
-  (require 'fontsize)
-  (global-set-key [?\C-=] 'fontsize-up)
-  (global-set-key [?\C--] 'fontsize-down))
-
-(global-set-key [deletechar] 'backward-delete-char)  ;; VT100 sequence?
+(when (>= emacs-major-version 23)
+  (global-set-key [?\C-=] 'text-scale-increase)
+  (global-set-key [?\C--] 'text-scale-decrease))
 
 ;; Use C-z for private keymap (more portable than F-keys)
 ;;
 (global-set-key "\C-z" nil)  ;; suspend-emacs not that useful
-(global-set-key "\C-z\C-m" 'save-and-make)
-(global-set-key "\C-zm" 'compile)
-(global-set-key "\C-z\C-n" 'next-error)
-(global-set-key "\C-z\C-p" 'previous-error)
-(global-set-key "\C-z\C-s" 'shell-bottom)
-(global-set-key "\C-z\C-t" 'ansi-term)
+(global-set-key "\C-z\C-a" 'review-add-comment)
 (global-set-key "\C-z\C-f" 'tree-find-file)
 (global-set-key "\C-z\C-g" 'tree-grep)
 (global-set-key "\C-z\C-h" 'tree-grep-headers)
 (global-set-key "\C-z\C-j" 'tree-hyperjump)
-(global-set-key "\C-zg"    'c-grep)
+(global-set-key "\C-z\C-m" 'save-and-make)
+(global-set-key "\C-z\C-n" 'next-error)
 (global-set-key "\C-z\C-o" 'p4-offline)
-(global-set-key "\C-z\C-a" 'review-add-comment)
-
-
-;; The dreaded "delete sends ^H" problem...
-(defun backspace-is-delete ()
-  (interactive)
-  (global-set-key "\C-h" 'backward-delete-char))
-
-(when (not (or window-system
-               (equal (getenv "TERM") "xterm-color")
-               (equal (getenv "TERM") "xterm-256color")))
-  (backspace-is-delete))
-
-(global-set-key "\C-z\C-h" 'backspace-is-delete)
-
-
+(global-set-key "\C-z\C-p" 'previous-error)
+(global-set-key "\C-z\C-s" 'shell-bottom)
+(global-set-key "\C-z\C-t" 'ansi-term)
+(global-set-key "\C-zg"    'c-grep)
+(global-set-key "\C-zm"    'compile)
 ;; Horizontal scrolling (see toggle-truncate-lines)
 (global-set-key [?\C-,] (lambda () (interactive) (scroll-left 4)))
 (global-set-key [?\C-.] (lambda () (interactive) (scroll-right 4)))
-
-(global-unset-key "\C-xnn") ; narrow-to-region
-
 (global-set-key [C-tab] 'other-window)
 (global-set-key [C-S-tab] 'other-window-prev)
-
 (global-set-key [mouse-3] 'tree-mouse-hyperjump)
+(global-unset-key "\C-xnn") ; narrow-to-region
 
-(put 'eval-expression 'disabled nil)    ; M-:
-(custom-set-variables
- '(ps-line-number t)
- '(indent-tabs-mode nil)
- '(ps-number-of-columns 2)
- '(ps-landscape-mode t)
- '(fill-column 76))
+;; Historical backspace problems...
+;; (global-set-key "\C-h" 'backward-delete-char))
+;; (global-set-key [deletechar] 'backward-delete-char)
 
-(setq transient-mark-mode t)
-(setq truncate-partial-width-windows nil)
-(setq search-highlight t)
-(delete-selection-mode t)
 
-;; Delete trailing whitespace from lines before a file is saved.
-;; (unless we're editing a makefile)
-;;
-(defun clean-whitespace ()
-  (unless (string-match "^make" (symbol-name major-mode))
-    (delete-trailing-whitespace)))
+;; Adjust font size for entire frame
+(global-set-key "\M-=" (lambda () (interactive) (my-zoom-frame 1)))
+(global-set-key "\M--" (lambda () (interactive) (my-zoom-frame -1)))
+(global-set-key "\M-0" (lambda () (interactive) (my-zoom-frame 0)))
 
-(add-hook 'before-save-hook 'clean-whitespace)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;  Local definitions  ;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Local definitions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (if my-host
     (load (concat "~/.emacs-" my-host) t t))
-
-(defun my-artist-mode-hook ()
-  (when (boundp 'artist-mode-map)
-    ;; button 3 = right button on two-button mouse
-    (define-key artist-mode-map [down-mouse-3] 'artist-mouse-choose-operation)))
-
-(add-hook 'artist-mode-init-hook 'my-artist-mode-hook)
-(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
-
-;;(defvar ps-printer-name "\\\\rejectamenta\\ax110amfd")
-;;(setq printer-name "\\\\rejectamenta\\ax110amfd")
-
-;(defun start-irc ()
-;   "Connect to IRC."
-;   (interactive)
-;   (require 'erc)
-;   (when (fboundp 'window-system)
-;     (setq erc-autojoin-channels-alist '((".*\\.qualcomm\\.com" "#minkapi"))))
-;   (erc-tls :server "chat-irc-prod.qualcomm.com" :port "9999" :nick "bhk" :full-name "Brian Kelley"))
