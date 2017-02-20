@@ -48,7 +48,7 @@
                     (+ my-size up-down)))
     ;; t => preserve window size
     (set-frame-font (format "%d" my-size) t)
-    (message (format "Size: %d" my-size)))
+    (message "Size: %d" my-size))
 
   (defun dark ()
     (interactive)
@@ -459,19 +459,16 @@ names.  Customize with `cwdtrack-regexp'."
 (eval-when-compile
   (require 'ispell)) ;; avoid "free variable" warnings
 
-(eval-after-load 'ispell
-  (if (executable-find "hunspell")
-      (progn
-        (setq-default ispell-program-name "hunspell")
-        (if (boundp 'ispell-really-hunspell)
-            (setq ispell-really-hunspell t)))
-    ;; Old MBP setup uses aspell.
-    (setq ispell-program-name "aspell"
-          ispell-dictionary "english"
-          ispell-personal-dictionary "/Users/bkelley/.aspell.pws"
-          ispell-extra-args (list (concat "--home-dir=" (expand-file-name "~/")))
-          ;; ispell-dictionary-alist
-          )))
+(cond
+ ((executable-find "hunspell")
+  (setq-default ispell-program-name "hunspell")
+  (setq ispell-really-hunspell t))
+
+ ((executable-find "aspell")
+  (setq ispell-program-name "aspell"
+        ispell-dictionary "english"
+        ispell-personal-dictionary "/Users/bkelley/.aspell.pws"
+        ispell-extra-args (list (concat "--home-dir=" (expand-file-name "~/"))))))
 
 ;; "GDB mode"
 
