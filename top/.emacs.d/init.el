@@ -273,7 +273,7 @@ lines for new window."
            ;; Match "<file>:<lc>[-<lc>]"
            ;;   Five captures:  file, line1, col1, line2, col2
            ;;   Skip initial "at " or "In file included from "
-           (colons (concat "\\(?:^\\|[[:space:]:]\\)\\(?:at \\|In file included from \\)?" file ":" lc "\\(?:-" lc "\\)?:.*"))
+           (colons (concat "\\(?:^\\|[[:space:]]\\)\\(?:at \\|In file included from \\)?" file ":" lc "\\(?:-" lc "\\)?:.*"))
 
            ;; Match "<file>(<line>)..." ; two captures: file, line
            (parens (concat "^" file "(\\([0-9]+\\))[ :]*[^:]*\\(?:[Ww]arning\\|[Ee]rror\\)"))
