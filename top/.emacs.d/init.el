@@ -74,6 +74,7 @@
   (dolist (e '(window-system (length (defined-colors)) process-environment system-configuration (version)))
        (insert (format "\n%s: %S" e (eval e)))))
 
+(setenv "TERM" "emacs")
 
 ;; git uses less, which does the wrong thing in a dumb terminal
 (setenv "PAGER" "cat")
@@ -255,11 +256,10 @@ lines for new window."
   (lisp-interaction-mode)
   (font-lock-mode t))
 
-;; Conflicts between expressions in compilation-error-regexp-alist are not
-;; handled well, so we carefully select the ones we want.  In particular,
-;; the 'gnu' rule conflicts with Lua error messages.  We cannot set these
-;; variables before (require 'compile), and compilation-mode-hook is
-;; apparently too late, so we require it now.
+;; We need to carefully select which expressions to include in
+;; compilation-error-regexp-alist because some will match things we don't
+;; want to match.  In particular, the 'gnu' rule conflicts with Lua error
+;; messages.
 ;;
 ;; Test this by loading ./mycomp.txt
 ;;
@@ -299,17 +299,16 @@ lines for new window."
         (mybash ,mybash 1 2 nil nil 1)
         (armcc ,armcc 1 2 nil nil 1)))))
 
-(eval-when-compile
-  (require 'compile))
-
-(when (boundp 'compilation-error-regexp-alist-alist)
-  (setq compilation-error-regexp-alist-alist
-	(append my-regexp-alist-alist compilation-error-regexp-alist-alist))
-  (setq compilation-error-regexp-alist
-        '(asrt colons parens mybash armcc node node2
-               gcc-include gcov-file gcov-header gcov-nomark
-               gcov-called-line gcov-never-called)))
-
+;; We cannot set these variables before (require 'compile), and
+;; compilation-mode-hook runs too late.
+(eval-after-load `compile
+  '(progn
+     (setq compilation-error-regexp-alist-alist
+           (append my-regexp-alist-alist compilation-error-regexp-alist-alist))
+     (setq compilation-error-regexp-alist
+           '(asrt colons parens mybash armcc node node2
+                  gcc-include gcov-file gcov-header gcov-nomark
+                  gcov-called-line gcov-never-called))))
 
 ;; shell
 (defun shell-bottom (arg)
@@ -462,7 +461,7 @@ names.  Customize with `cwdtrack-regexp'."
 (cond
  ((executable-find "hunspell")
   (setq-default ispell-program-name "hunspell")
-  (setq ispell-really-hunspell t))
+  (defvar ispell-really-hunspell t))
 
  ((executable-find "aspell")
   (setq ispell-program-name "aspell"
