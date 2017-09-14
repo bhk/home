@@ -68,12 +68,11 @@ if [ -z "$BASHRC_ONCE" ] ; then
     if [ -f ~/.bashrc-local ]; then
 	. ~/.bashrc-local
     fi
-
-    # Now that environment is initialized, no need to run this file again on
-    # any subshells.  (BASH_ENV is set by emacs to ensure .bashrc is run.)
-    BASH_ENV=''
 fi
 
+# Now that environment is initialized, no need to run this file again on
+# any subshells.  (BASH_ENV is set by emacs to ensure .bashrc is run.)
+export -n BASH_ENV
 
 #--------------------------------
 # Every time
