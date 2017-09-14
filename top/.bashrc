@@ -30,14 +30,7 @@
 if [ -z "$BASHRC_ONCE" ] ; then
     export BASHRC_ONCE=1
 
-    # When run from Cygwin, Mercurial does not recognize Win32 paths in any of
-    # TMPDIR, TEMP, or TMP.  It passes the first valid Cygwin path to the
-    # editor.  To work with Windows editors, the temporary directory name must
-    # mean the same thing in both Cygwin and Windows environments
-    # (e.g. "c:\tmp" mounted on Cygwin's "/tmp").
-
-    export EDITOR="${EDITOR:-emacsclient}"
-    export ALTERNATE_EDITOR=emacs
+    export EDITOR=emacs
     export P4CONFIG=.p4
 
     if [ -f /etc/bashrc ]; then
@@ -75,6 +68,10 @@ if [ -z "$BASHRC_ONCE" ] ; then
     if [ -f ~/.bashrc-local ]; then
 	. ~/.bashrc-local
     fi
+
+    # Now that environment is initialized, no need to run this file again on
+    # any subshells.  (BASH_ENV is set by emacs to ensure .bashrc is run.)
+    BASH_ENV=''
 fi
 
 
@@ -87,7 +84,6 @@ if [ "$OSTYPE" = "cygwin" ]; then
   # Set BASH_ENV to ensure this gets set when running shell scripts.
   # BASH_ENV is not already set when bash is invoked via SSH on Cygwin.
   set -o igncr
-  export BASH_ENV="$HOME/.bashrc"
 fi
 
 #--------------------------------
