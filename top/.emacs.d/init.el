@@ -4,22 +4,12 @@
 ;; Utilities
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Return first list item for which (pred item) is truthy.
-(defun findcar (pred lst)
-  (if lst
-      (if (funcall pred (car lst))
-          (car lst)
-        (findcar pred (cdr lst)))))
-
 (defun printf (&rest a)
   (princ (concat (apply 'format a)) "\n"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Environment
+;; Appearance
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defvar my-host
-  (or (getenv "COMPUTERNAME") (system-name)))
 
 (eval-when-compile (require 'cl))
 
@@ -58,63 +48,39 @@
     (interactive)
     (customize-set-variable 'custom-enabled-themes '(light))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Environment
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Dump environment info
-;;
-;; EmacsForMacOSX
-;;    window-system: ns
-;;    process-environment: USER, SHELL, HOME, TERM=dumb
-;; Linux, in SSH session from mintty in Cygwin 1.7
-;;    window-system: nil
-;;    process-environment: SSH_CONNECTION, SSH_TTY, SSH_CLIENT, HOSTNAME
-
 (defun dump-env ()
   "Dump misc. environment information"
   (interactive)
-  (dolist (e '(window-system (length (defined-colors)) process-environment system-configuration (version)))
+  (dolist (e '(window-system (length (defined-colors)) process-environment
+               system-configuration (version)))
        (insert (format "\n%s: %S" e (eval e)))))
 
-(setenv "TERM" "emacs")
-
-;; git uses less, which does the wrong thing in a dumb terminal
-(setenv "PAGER" "cat")
-
-;; EmacsForMacOSX in GUI mode: Environment is not inherited from .bashrc.
-;;
-(when (eq window-system 'ns)
-  (let ((app-bin "/Applications/Emacs.app/Contents/MacOS/bin")
-        (PATH (getenv "PATH"))
-        (HOME (getenv "HOME")))
-
-    (setenv "P4CONFIG" ".p4")
-
-    ;; exec-path is used when launching programs.
-    (add-to-list 'exec-path "/usr/local/bin")
-    (add-to-list 'exec-path (concat HOME "/local/bin"))
-
-    (setenv "PATH"
-            (concat HOME "/bin:"
-                    HOME "/local/bin:"
-                    "/usr/local/bin:"
-                    app-bin ":"          ; for emacsclient
-                    PATH))
-
-    (if (equal "/" default-directory)
-        (setq default-directory
-              (concat HOME "/")))))
-
-;; emacsclient
-;;   /usr/bin/emacs works with /usr/bin/emacsclient
-;;   emacsformacosx.com works with its own emacsclient
-(setenv "EDITOR" "emacsclient")
+;; Set a different server file name for each emacs instance, so two
+;; different emacs instances will not clobber each other, and running
+;; emacsclient in a sub-shells will invoke the correct instance.
+(require `server)
+(set-variable 'server-name (number-to-string (emacs-pid)))
 (server-start)
+(setenv "EDITOR" (concat "emacsclient -s " server-name))
 
-;; Ensure the subcommands (e.g. make spawned from 'compile') get my user
-;; environment settings, even on MacOS or Windows, where the GUI version of
-;; emacs is not spawned from a shell.
-;;
-(setenv "BASH_ENV" (concat (getenv "HOME") "/.bashrc"))
+;; Note: The TERM variable is clobbered when sub-commands are invoked.  We
+;; could use .emacs.d/init_bash.sh, but that causes multiple prompts to be
+;; echoed into the buffer.  Instead, we rely on .bashrc to check
+;; $INSIDE_EMACS in interactive shells.
 
+(when (fboundp 'window-system)
+  ;; In Mac/Win GUI emacs, the environment has not been initialized by
+  ;; .bashrc, so we need to ensure that .bashrc will be run when a
+  ;; subcommand (e.g. make spawned from M-x compile) is executed.
+  (setenv "BASH_ENV" (concat (getenv "HOME") "/.bashrc"))
+
+  (if (equal "/" default-directory)
+      (setq default-directory (getenv "HOME"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Custom features
@@ -601,5 +567,7 @@ names.  Customize with `cwdtrack-regexp'."
 ;; Local definitions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar my-host
+  (or (getenv "COMPUTERNAME") (system-name)))
 (if my-host
     (load (concat "~/.emacs-" my-host) t t))
