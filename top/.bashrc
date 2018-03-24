@@ -36,8 +36,7 @@ fi
 #--------------------------------
 
 if [[ "$TERM" == "dumb" && -n "$INSIDE_EMACS" ]] ; then
-    # git: Set TERM='' to get colors (which Emacs comint handles fine).
-    export TERM=''
+    export TERM=emacs
     export PAGER=cat
     # Rely on emacs for command line editing.
     export NODE_NO_READLINE=1
