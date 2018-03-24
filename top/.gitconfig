@@ -1,6 +1,6 @@
 [user]
 	name = Brian Kelley
-	email = bhk@bhk.com
+	useConfigOnly = true
 [color]
 	ui = auto
 [alias]
@@ -9,6 +9,9 @@
 	st = status
 	co = checkout
 	lg = log --oneline --graph -10
+	dc = diff --cached
+        ds = diff --stat
+        dsc = diff --stat --cached
 [push]
 	default = simple
 
