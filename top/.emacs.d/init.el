@@ -569,6 +569,7 @@ names.  Customize with `cwdtrack-regexp'."
 (global-set-key "\C-z\C-t" 'ansi-term)
 (global-set-key "\C-zg"    'c-grep)
 (global-set-key "\C-zm"    'compile)
+(global-set-key "\C-z\C-\\" 'toggle-truncate-lines)
 ;; Horizontal scrolling (see toggle-truncate-lines)
 (global-set-key [?\C-,] (lambda () (interactive) (scroll-left 4)))
 (global-set-key [?\C-.] (lambda () (interactive) (scroll-right 4)))
