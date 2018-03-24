@@ -1,0 +1,33 @@
+Bugs and Resolutions
+====
+
+TERM='' causes emacsclient to fail
+--------------------------------
+
+When TERM is an empty string, emacsclient fails to communicate with the
+emacs server.
+
+Resolution: Set TERM=emacs (instead of TERM='').
+
+
+Wrong emacsclient in path
+--------------------------------
+
+When running /Applications/Emacs.app/Contents/MacOS/Emacs (version 25.3.1),
+the emacsclient in PATH (/usr/bin/emacsclient, version 22.1) is not
+compatible.  Instead, we should run
+/Applications/Emacs.app/Contents/MacOS/bin/emacsclient.  [Also, etags,
+ctags, and ebrowse live in this bin directory.]
+
+Emacs *already* updates PATH to include the bin directory, but it places it
+at the *end*, not at the start:
+  PATH=/usr/bin:/bin:/usr/sbin:/sbin:/Applications/Emacs.app/...
+
+Variables that reference paths in /Applications/Emacs.app:
+  Info-default-directory-list has /Applications/Emacs.app/Contents/Resources/info.
+  data-directory = /Applications/Emacs.app/Contents/Resources/etc/
+  doc-directory = /Applications/Emacs.app/Contents/Resources/etc/
+  exec-directory = /Applications/Emacs.app/Contents/MacOS/libexec/
+
+Resolution:
+  In init.el: move PATH entries for this version of emacs to the front.

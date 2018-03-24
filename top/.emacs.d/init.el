@@ -7,6 +7,15 @@
 (defun printf (&rest a)
   (princ (concat (apply 'format a)) "\n"))
 
+(defmacro filter-it (frm lst)
+  "Return all members of LST for which FRM is non-nil.  In FRM, `it` will be bound t the current item."
+  (let ((result (make-symbol "result")))
+    `(let (,result)
+       (dolist (it ,lst)
+         (if ,frm
+             (push it ,result)))
+       (reverse ,result))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -78,6 +87,20 @@
   ;; .bashrc, so we need to ensure that .bashrc will be run when a
   ;; subcommand (e.g. make spawned from M-x compile) is executed.
   (setenv "BASH_ENV" (concat (getenv "HOME") "/.bashrc"))
+
+  ;; If running a non-installed MacOS emacs, ensure that its bin directories
+  ;; come first in the PATH, so subshells will get the appropriate
+  ;; emacsclient.
+  (if (string-match-p "/MacOS/libexec/$" exec-directory)
+      (let* ((top (replace-regexp-in-string "/libexec/.*" "/" exec-directory))
+             (re (concat (regexp-quote top) ".*"))
+             (path (split-string (getenv "PATH") ":" t))
+             (new (combine-and-quote-strings
+                   (append
+                    (filter-it (string-match-p re it) exec-path)
+                    (filter-it (not (string-match-p re it)) exec-path))
+                   ":")))
+        (setenv "PATH" new)))
 
   (if (equal "/" default-directory)
       (setq default-directory (getenv "HOME"))))
