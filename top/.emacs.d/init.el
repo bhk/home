@@ -77,6 +77,14 @@
 (server-start)
 (setenv "EDITOR" (concat "emacsclient -s " server-name))
 
+;; Make C-x k terminate the buffer's client session (not just C-x #)
+(add-hook 'server-switch-hook
+          (lambda ()
+            (when (current-local-map)
+              (use-local-map (copy-keymap (current-local-map))))
+            (when server-buffer-clients
+              (local-set-key (kbd "C-x k") 'server-edit))))
+
 ;; Note: The TERM variable is clobbered when sub-commands are invoked.  We
 ;; could use .emacs.d/init_bash.sh, but that causes multiple prompts to be
 ;; echoed into the buffer.  Instead, we rely on .bashrc to check
