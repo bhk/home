@@ -303,7 +303,8 @@ lines for new window."
 (defun shell-bottom (arg)
   (interactive "p")
   (if (eq arg 1)
-      (shell)
+      (shell (and buffer-file-name
+                  (concat "*Shell-" (file-name-directory buffer-file-name) "*")))
     (shell (concat "*AltShell-" (number-to-string arg) "*")))
   (goto-char (point-max)))
 
