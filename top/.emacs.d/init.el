@@ -152,7 +152,6 @@
         (save-buffers-kill-terminal)
       (save-buffers-kill-emacs))))
 
-
 ;; How did I get by without this?  26-Oct-95 bhk
 (defun other-window-prev ()
   "Select the previous window on this screen; same as (`other-window' -1), but
@@ -161,57 +160,36 @@ bhk 18-Jan-96"
   (interactive)
   (other-window -1))
 
-
-(defun list-select (match lst)
-  "Return new list of items from LST matching MATCH.
-MATCH can be a function or a regexp."
-  (let ((matchfn (if (stringp match)
-		     (lambda (str) (string-match match str))
-		   match))
-	(result nil))
-    (while lst
-      (if (funcall matchfn (car lst))
-	  (setq result (cons (car lst) result)))
-      (setq lst (cdr lst)))
-    (reverse result)))
-
-;; Is buffer 'b' a buffer we want to browse with prev & next?
+;; Is buffer 'b' a buffer we want to browse with prev & next?  Buffers we
+;; did not create intentionally usually begin with a space or "*" and a
+;; capital letter.
 ;;
 (defun is-browsable-buffer (b)
-  (let ((name (buffer-name b)))
-    (not (string-match "^ ?\\*\\(Buff\\|Mess\\|scrat\\|Compl\\|Mini\\)" name))))
-
-;;Was:    (not (string-match "^[ \*]" name))
+  (let ((case-fold-search nil))
+    (not (string-match "^\\( \\|\\*[A-Z]\\)" (buffer-name b)))))
 
 ;; And buffer history navigation   (Emissary-like)
 ;;   bury-buffer == go back in history
 ;;   next-buffer == go forward in history
 (defun next-buffer ()
-  "Select the 'next' buffer a la forward/backward (browser-like) buffer navigation.
-bury-buffer and next-buffer act as 'back' and 'forward', respectively.
-bhk Dec-95"
+  "Select the 'next' buffer a la forward/backward (browser-like)
+buffer navigation. bury-buffer and next-buffer act as 'back' and
+'forward', respectively.  bhk Dec-95"
   (interactive)
-  (switch-to-buffer (car (list-select
-                          (lambda (f) (is-browsable-buffer f))  ;; TODO: how to get function value from name?
-                          (reverse (buffer-list))))))
+  (switch-to-buffer (car (filter-it (is-browsable-buffer it)
+                                    (reverse (buffer-list))))))
 
 (defun prev-buffer ()
-  "Select the 'previous' buffer a lt forward/backward browser-like buffer mavigation.
-bury-buffer is almost what we want, but it tends to select a buffer distinct from all
-other windows.  Sometimes we want to see the same file in two windows."
+  "Select the 'previous' buffer a la forward/backward
+browser-like buffer navigation."
   (interactive)
-  (let ((head (car (buffer-list))))
-    (bury-buffer (car (buffer-list)))
-    (while (and (not (eq head (car (buffer-list))))
+  (let ((start (current-buffer)))
+    ;; With an explicit arg, bury-buffer will not switch the current window.
+    (bury-buffer start)
+    (while (and (not (eq start (car (buffer-list))))
                 (not (is-browsable-buffer (car (buffer-list)))))
       (bury-buffer (car (buffer-list)))))
   (switch-to-buffer (car (buffer-list))))
-
-
-;;  c:/p/util/grep can handle "/path/*/*.h" type expressions; c:/p/gnu/bin/grep cannot.
-;;  c:/p/util/grep cannot handle long file names, but that's okay for pilot-grep,
-;;    since we have to use 8.3 names because next-error can't either (see below),
-;;    so I'll stick with it here.
 
 (defun grep-in (path prompt)
   (require 'compile)
