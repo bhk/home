@@ -294,10 +294,10 @@ lines for new window."
 ;; shell
 (defun shell-bottom (arg)
   (interactive "p")
-  (if (eq arg 1)
-      (shell (and buffer-file-name
-                  (concat "*Shell-" (file-name-directory buffer-file-name) "*")))
-    (shell (concat "*AltShell-" (number-to-string arg) "*")))
+  (let ((suffix (if (eq arg 1)
+                    default-directory
+                  (number-to-string arg))))
+    (shell (concat "*shell " suffix "*")))
   (goto-char (point-max)))
 
 ;;------------------------------
