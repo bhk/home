@@ -96,6 +96,12 @@
   ;; subcommand (e.g. make spawned from M-x compile) is executed.
   (setenv "BASH_ENV" (concat (getenv "HOME") "/.bashrc"))
 
+  ;; ...and for the same reason, ~/local/bin is not in exec-path, which will
+  ;; cause (executable-find) not to find `aspell`.  This unavoidably
+  ;; duplicates logic in .bashrc.
+  (let ((localbin (concat (getenv "HOME") "/local/bin")))
+    (add-to-list 'exec-path localbin))
+
   ;; If running a non-installed MacOS emacs, ensure that its bin directories
   ;; come first in the PATH, so subshells will get the appropriate
   ;; emacsclient.
