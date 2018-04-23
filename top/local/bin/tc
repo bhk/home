@@ -1,8 +1,7 @@
 #!/bin/bash
 
 if [ "$1" == "-n" ] ; then
-  find . \( -name \*~  -o -name .\*~ \) -print
+  find . -type f -name '?*~' -print
 else
-  find . \( -name \*~ -o -name .\*~ \) -exec rm \{\} \; -print
+  find . -type f -name '?*~' -exec rm \{\} \; -print
 fi
-
