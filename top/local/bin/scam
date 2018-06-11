@@ -1,110 +1,128 @@
 #!/bin/bash
-:; for v in "${@//!/!1}" ; do v=${v// /!0} ; v=${v//	/!+}; a[++n]=${v:-!.} ; done ; SCAM_ARGS=${a[*]} exec make -Rr --no-print-directory -j ${SCAM_JOBS:-9} -f"$0"
+:; for v in "${@//!/!1}" ; do v=${v// /!0} ; v=${v//	/!+}; a[++n]=${v:-!.} ; done ; LC_ALL=C SCAM_ARGS=${a[*]} exec make -Rr --no-print-directory -j ${SCAM_JOBS:-9} -f"$0" 9>&1
+SHELL:=/bin/bash
 
-
-define ///build.min
+define [mod-'build]
 # compiled from build.scm
-# Requires: core io parse compile gen runtime
-# Requires: scam-ct
-# Exports: build_3 exe-rules)5 mmap-rules)2 mmap-all-deps)2 mmap-all-requires)2 link-rule)6 test-rule)4 compile-rule)8 rule)4 scan-modules)2]or]3 scan-deps)2 if-bundled+if-bound+if-exists+mmap-okfiles)2 mmap-testmods)2 mmap-minfiles)2 mmap-objects)2 mmap-add&p;8;\.;\>;~cons`:IL6],1>|^d|@[}2}0],1'|}],1>|^d|@[}3}0],1'|}],1>|^d|@[}4}0],1'|}],1>|^d|@[}5}0],1'|}],1>|^d|@[}6}0],1'|}],1>|^d|@[}7}0],1'|}],1>|^d|@[}8}0`[]1]0 mod-deps&p;1;\.;\>;~promote`<]wordlist],1'|5],1'|6],1[|1|0 mod-is-boot&p;1;\.;\>;~nth`']7`[]1]0 mod-uses&p;1;\.;\>;~nth`']6`[]1]0 mod-requires&p;1;\.;\>;~nth`']5`[]1]0 mod-testmod&p;1;\.;\>;~nth`']4`[]1]0 mod-object&p;1;\.;\>;~nth`']3`[]1]0 mod-source&p;1;\.;\>;~nth`']2`[]1]0 mod-name&p;1;\.;\>;~nth`']1`[]1]0 scan-object+scan-source+echo-cmd)0]or]more *quiet*#0;~%;p *self*#0;~%;p link)5 epilogue)3 prologue#0;~%;p read-object+bundle-var&p;1;\.;\:IL6`']///`<]notdir],1[|1|0 bundled?&p;1;\.;\<;filter`']///!p`[]1]0 bundle-path&p;1;\.;\:IL6`']///`>]~modnames-of],1[|1|0`'].min bundle-dir#2;\.;p;\';/// modnames-of+strip-comments+skip-comments+traverse-graph)3 dbg-print)3 resolve-mod)2 clean-path)1
-$(call ^require,core)
-$(call ^require,io)
-$(call ^require,parse)
-$(call ^require,compile)
-$(call ^require,gen)
-~clean-path = $(patsubst ./%,%,$(subst /./,/,$1))
-~resolve-mod = $(call ~clean-path,$(dir $1)$2$(suffix $1))
-~dbg-print = $(and $(if $(findstring $1,$(value SCAM_DEBUG)),$(call ~printf,$2,$3))1,$3)
+# Requires: 'core 'io 'parse 'compile 'gen 'runtime
+# Uses: 'scam-ct
+# Exports: build_3 exe-rules)4 mmap-rules)2 mmap-rule)3 mmap-all-deps)2 test-rule)3 link-rule)7 link)5 epilogue)3 prologue#0;~%;p compile-rule)6 rule)4 build-message)2 scan-modules)2]or]3 mmap-all-requires)2 mmap-okfiles)2 mmap-testmods)2 mod-new&p;5;\.;\:IL6`>]^d],1[|1|0`']|`>]^d],1[|2|0`']|`>]^d],1[|3|0`']|`>]^d],1[|4|0`']|`>]^d],1[|5|0 mod-obj&p;1;\.;\>;~module-object-file`>]~nth],1'|1],1[|1|0 mod-deps&p;1;\.;\>;~append`>]~nth],1'|3],1[|1|0`>]~nth],1'|4],1[|1|0 mod-excludes&p;1;\.;\>;~nth`']5`[]1]0 mod-uses&p;1;\.;\>;~nth`']4`[]1]0 mod-requires&p;1;\.;\>;~nth`']3`[]1]0 mod-testmod&p;1;\.;\>;~nth`']2`[]1]0 mod-origin&p;1;\.;\>;~nth`']1`[]1]0 scan-deps+scan-builtin+scan-source+module-read-obj+origins-to-obj-files+origins-to-objs+module-object-file+strip-comments+skip-comments+traverse-graph)3 build-eval+*self*#0;~%;p fatal)1]or]more *is-quiet*#0;~%;x
+$(call ^require,'core)
+
+$(call ^require,'io)
+
+$(call ^require,'parse)
+
+$(call ^require,'compile)
+
+$(call ^require,'gen)
+
+~*is-quiet* := 
+~fatal = $(and $(info $(call ~vsprintf,scam: $1,$(foreach N,2,$(^v))))1,$(error fatal error))
+~*self* := $(firstword $(MAKEFILE_LIST))
+~build-eval = $(eval $1)
 ~traverse-graph = $(if $(call ^u,$(word 1,$1)),$(call ~cons,$(call ^u,$(word 1,$1)),$(call ~traverse-graph,$(call ~append,$(wordlist 2,99999999,$1),$(filter-out $(call ~append,$1,$3),$(call ^Y,$(call ^u,$(word 1,$1)),,,,,,,,,$2))),$2,$(call ~append,$(call ^u,$(word 1,$1)),$3))))
 define ~skip-comments
-$(if $(or $(and $1,$(if $(call ^u,$(word 1,$1)),,1)),$(filter #%,$(word 1,$(call ^u,$(word 1,$1))))),$(call ~skip-comments,$(wordlist 2,99999999,$1)),$1)
+$(if $(filter #% !.,$(word 1,$1)),$(call ~skip-comments,$(wordlist 2,99999999,$1)),$1)
 endef
 define ~strip-comments
 $(call ~concat-vec,$(call ~skip-comments,$(call ~split,
 ,$1)),
 )
 endef
-~modnames-of = $(basename $(notdir $1))
-~read-object = $(if $(filter ///%,$1),$(value ///$(notdir $1)),$(call ~read-file,$1))
-~prologue := \#!/bin/bash$':; for v in "$`{@//!/!1}" ; do v=$`{v// /!0} ; v=$`{v//	/!+}; a[++n]=$`{v:-!.} ; done ; SCAM_ARGS=$`{a[*]} exec make -Rr --no-print-directory -j $`{SCAM_JOBS:-9} -f"$`0"$'$'
-define ~epilogue
-$`(eval $`(value ///$(notdir $3)))
-$`(call ^start,///$(notdir $1),$2,$`(SCAM_ARGS))
-
-endef
-define ~link
-$(and $(call ~write-file,$1,$(~prologue)$(foreach obj,$2,
-$ define ///$(notdir $(call ^u,$(obj)))
-$(call ^Y,$(call ~read-object,$(call ^u,$(obj))),,,,,,,,,$(if $5,$(value ~identity),$(value ~strip-comments)))
-$ endef
-)$(call ~epilogue,$3,$(call ~gen-global-name,main,),$4))1,$(shell chmod +x $(call ~quote-sh-arg,$1)))
-endef
-~*self* := $(firstword $(MAKEFILE_LIST))
-~*quiet* := $(if $(findstring M,$(SCAM_DEBUG)),,@)
-~echo-cmd = $(subst $`,$`$`,@ echo $(call ~quote-sh-arg,$(call ~concat-vec,$(foreach N,1,$(^v)))))
-~scan-source = $(call ^Y,$(shell sed -E 's/ //g;s/^\$[(require|use)"([^"]*)".*|.*/\1\2/g;/../!d' $(call ~quote-sh-arg,$1)),,,,,,,,,$`(filter-out !.,$`(foreach symbol,require% use%,$`(call ~demote,$`(foreach w,$`(patsubst $`(symbol),%,$`(filter $`(symbol),$`1)),$`(call ~demote,$`(call ~resolve-mod,$(call ^E,$1),$`w)))))))
-define ~scan-object
+~module-object-file = $(call ~modid-file,$(call ~module-id,$1))
+~origins-to-objs = $(foreach m,$1,$(call ^d,$(call ~module-object-file,$(call ^u,$m))))
+~origins-to-obj-files = $(call ~origins-to-objs,$(filter-out '%,$1))
+~module-read-obj = $(if $(filter '%,$1),$(value $(call ~module-var,$1)),$(or $(call ~read-file,$(call ~modid-file,$(call ~module-id,$1))),$(call ~printf,module-read-obj: file '%s' not found!,$(call ~modid-file,$(call ~module-id,$1)))))
+~scan-source = $(call ^Y,$(shell sed -E 's/ //g;s/^\$[(require|use)"([^"]*)".*|.*/\1\2/g;/../!d' $(call ~quote-sh-arg,$1)),,,,,,,,,$`(foreach symbol,require% use%,$`(call ^d,$`(foreach f,$`(patsubst $`(call ^u,$`(symbol)),%,$`(filter $`(call ^u,$`(symbol)),$`1)),$`(call ^d,$`f)))))
+define ~scan-builtin
 $(call ^Y,$(wordlist 1,4,$(call ~split,
-,$(call ~read-object,$1))),,,,,,,,,$`(foreach key,Requires Uses,$`(call ^d,$`(foreach m,$`(call ~promote,$`(patsubst $`(call ^d,# $`(key): %),%,$`(filter $`(call ^d,# $`(key): %),$`1))),$`(call ~resolve-mod,$(call ^E,$1),$`m)))))
+,$(value $(call ~module-var,$1)))),,,,,,,,,$`(and $`(call ~assert-x,$`1,build.scm:159)1,$`(foreach key,Requires Uses,$`(call ^d,$`(call ~promote,$`(patsubst $`(call ^d,# $`(key): %),%,$`(filter $`(call ^d,# $`(key): %),$`1)))))))
 endef
-~mmap-objects = $(foreach m,$2,$(call ~nth,3,$(call ~assoc-initial,$(subst !,!1,$(call ^d,$m)),$1)))
-~mmap-minfiles = $(filter-out ///%,$(call ~mmap-objects,$1,$2))
-~mmap-testmods = $(foreach m,$2,$(call ~nth,4,$(call ~assoc-initial,$(subst !,!1,$(call ^d,$m)),$1)))
-~mmap-okfiles = $(addsuffix .ok,$(call ~mmap-objects,$1,$(call ~mmap-testmods,$1,$2)))
-~if-exists = $(wildcard $1)
-~if-bound = $(if $(if $(filter-out u%,$(flavor $1)),1),$1)
-~if-bundled = $(call ~if-bound,///$(call ~modnames-of,$1).min)
-~scan-deps = $(if $1,$(call ~scan-source,$1),$(call ~scan-object,$2))
-~scan-modules = $(if $(if $(call ^u,$(word 1,$2)),,1),$3,$(if $(call ~assoc-initial,$(subst !,!1,$(call ^d,$(call ~modnames-of,$(call ^u,$(word 1,$2))))),$3),$(call ~scan-modules,$1,$(wordlist 2,99999999,$2),$3),$(call ^Y,$1,$(wordlist 2,99999999,$2),$3,$(call ~modnames-of,$(call ^u,$(word 1,$2))),$(call ~if-exists,$(filter %.scm,$(call ^u,$(word 1,$2)))),$(or $(if $(call ~if-exists,$(filter %.scm,$(call ^u,$(word 1,$2)))),$(call ~dict-get,odir,$1)$(call ~modnames-of,$(call ^u,$(word 1,$2))).min),$(call ~if-exists,$(call ^u,$(word 1,$2))),$(call ~if-exists,$(basename $(call ^u,$(word 1,$2))).min),$(if $(call ~dict-get,rebundle,$1),$(call ~if-bundled,$(call ^u,$(word 1,$2)))),$(call ^u,$(word 1,$2))),$(call ~scan-deps,$(call ~if-exists,$(filter %.scm,$(call ^u,$(word 1,$2)))),$(or $(if $(call ~if-exists,$(filter %.scm,$(call ^u,$(word 1,$2)))),$(call ~dict-get,odir,$1)$(call ~modnames-of,$(call ^u,$(word 1,$2))).min),$(call ~if-exists,$(call ^u,$(word 1,$2))),$(call ~if-exists,$(basename $(call ^u,$(word 1,$2))).min),$(if $(call ~dict-get,rebundle,$1),$(call ~if-bundled,$(call ^u,$(word 1,$2)))),$(call ^u,$(word 1,$2)))),,,$`(call ~scan-modules,$`1,$`(call ~append,$`2,$`(call ~promote,$`7),$`(call ~if-exists,$`(patsubst %.scm,%-q.scm,$`5))),$`(call ~cons,$`(call ^d,$`4) $`(call ^d,$`5) $`(call ^d,$`6) $`(call ^d,$`(call ~modnames-of,$`(call ~if-exists,$`(patsubst %.scm,%-q.scm,$`5)))) $`(call ^d,$`(call ~modnames-of,$`(call ~append,$`(call ~nth,1,$`7),$`(if $`(call ~dict-get,boot,$`1),,runtime.scm)))) $`(call ^d,$`(call ~modnames-of,$`(call ~append,$`(call ~nth,2,$`7),$`(if $`(call ~dict-get,boot,$`1),,scam-ct.scm)))) $`(call ^d,$`(call ~dict-get,boot,$`1)),$`3)))))
+~scan-deps = $(if $(filter-out '%,$1),$(foreach v,$(call ~scan-source,$1),$(call ^d,$(foreach name,$(call ^u,$v),$(call ^d,$(or $(call ~locate-module,$1,$(call ^u,$(name))),$(info Could not find module: $(call ^u,$(name)))))))),$(call ~scan-builtin,$1))
+~mmap-testmods = $(filter-out !.,$(foreach s,$2,$(call ^d,$(call ~nth,2,$(call ~assoc-initial,$(subst !,!1,$(call ^d,$(call ^u,$s))),$1)))))
+~mmap-okfiles = $(addsuffix .ok,$(call ~origins-to-objs,$(call ~mmap-testmods,$1,$2)))
+~mmap-all-requires = $(call ^set,~*mmap*,$(call ^set,~*mmap*,$1,$(~*mmap*)),$(call ~traverse-graph,$2,$`(call ~nth,3,$`(call ~assoc-initial,$`(subst !,!1,$`(call ^d,$`1)),$`(~*mmap*))),))
+~scan-modules = $(if $(if $(call ^u,$(word 1,$2)),,1),$3,$(if $(call ~assoc-initial,$(subst !,!1,$(call ^d,$(call ^u,$(word 1,$2)))),$3),$(call ~scan-modules,$1,$(wordlist 2,99999999,$2),$3),$(call ^Y,$1,$(wordlist 2,99999999,$2),$3,$(call ^u,$(word 1,$2)),$(call ~scan-deps,$(call ^u,$(word 1,$2))),,,,,$`(call ~scan-modules,$`1,$`(call ~append,$`2,$`(call ~promote,$`5),$`(and $`(filter-out '%,$`4),$`(call ~file-exists?,$`(patsubst %.scm,%-q.scm,$`(filter %.scm,$`4))))),$`(call ~cons,$`(call ^d,$`4) $`(call ^d,$`(and $`(filter-out '%,$`4),$`(call ~file-exists?,$`(patsubst %.scm,%-q.scm,$`(filter %.scm,$`4))))) $`(call ^d,$`(call ~append,$`(call ~nth,1,$`5),$`(call ~dict-get,rt,$`1))) $`(call ^d,$`(call ~append,$`(call ~nth,2,$`5),$`(call ~dict-get,ct,$`1))) $`(call ^d,$`(if $`(call ~dict-get,rt,$`1),,R)$`(if $`(call ~dict-get,ct,$`1),,C)),$`3)))))
+define ~build-message
+$(or $(~*is-quiet*),$(call ~write,2,... $1 $2
+))
+endef
 define ~rule
-$1: $2$(if $3, | )$3$(call ~concat-vec,$(call ~cons,,$(foreach cmd,$4,$(call ^d,$(if $(filter @%,$(word 1,$(call ^u,$(cmd)))),$(call ^u,$(cmd)),$(~*quiet*)$(call ^u,$(cmd)))))),
+$1: $2$(if $3, | )$3$(call ~concat-vec,$(call ~cons,,$(addprefix $(if $(findstring @,$(value SCAM_DEBUG)),,@),$4)),
 	)
 
 
 endef
-~compile-rule = $(call ~rule,$1,$(call ~append,$2,$3,$(~*self*)),$4,$(call ^d,@ true $(call ^Y,$2,$5,$6,$7,$8,,,,,$``(and $``(info => compiling $(call ^E,$1,`))1,$``(call ~compile-file,$`(call ^E,$`1),$(call ^E,$1,`),$`(call ^E,$`5),$`(call ^E,$`2),$`(call ^E,$`3),$`(call ^E,$`4))))))
-~test-rule = $(call ~rule,$1,$2,,$(call ^d,$(call ~echo-cmd,=> running ,$(basename $2))) $(call ^d,$(MAKE) -s -f $(if $(filter ///%,$3),$(call ~quote-sh-arg,$(~*self*)),$3) SCAM_MAIN='$(patsubst %.min,%,$2)' SCAM_MODS='$4') $(call ^d,touch $1))
-~link-rule = $(call ~rule,$1,$2,$3,$(call ^d,@ true $(call ^Y,$(call ~sort-by,$`(notdir $`1),$4),$(call ~modnames-of,$(call ^u,$(word 1,$4))),,,,,,,,$``(and $``(info => linking $(call ^E,$1,`))1,$``(call ~link,$(call ^E,$1,`),$`(call ^E,$`1),$`(call ^E,$`2),$(call ^E,$5,`),$(call ^E,$6,`))))))
-~mmap-all-requires = $(call ^set,~*mmap*,$(call ^set,~*mmap*,$1,$(~*mmap*)),$(call ~traverse-graph,$2,$`(call ~nth,5,$`(call ~assoc-initial,$`(subst !,!1,$`(call ^d,$`1)),$`(~*mmap*))),))
-~mmap-all-deps = $(call ^set,~*mmap*,$(call ^set,~*mmap*,$1,$(~*mmap*)),$(call ~traverse-graph,$2,$`(call ~promote,$`(wordlist 5,6,$`(call ~assoc-initial,$`(subst !,!1,$`(call ^d,$`1)),$`(~*mmap*)))),))
-~mmap-rules = $(call ~concat-vec,$(filter-out !.,$(foreach mod,$1,$(call ^d,$(if $(call ~nth,2,$(call ^u,$(mod))),$(if $(filter %.min,$(call ~nth,3,$(call ^u,$(mod)))),$(call ~compile-rule,$(call ~nth,3,$(call ^u,$(mod))),$(call ~nth,2,$(call ^u,$(mod))),$(call ~mmap-minfiles,$1,$(call ~promote,$(wordlist 5,6,$(call ^u,$(mod))))),$(filter-out $(call ~nth,3,$(call ^u,$(mod))).ok,$(call ~mmap-okfiles,$1,$(call ~promote,$(wordlist 5,6,$(call ^u,$(mod)))))),$(call ~mmap-minfiles,$1,$(call ~mmap-all-deps,$1,$(call ~promote,$(wordlist 5,6,$(call ^u,$(mod)))))),$(call ~nth,5,$(call ^u,$(mod))),$(call ~nth,6,$(call ^u,$(mod))),$(call ~nth,7,$(call ^u,$(mod))))))$(if $(call ~nth,4,$(call ^u,$(mod))),$(call ~test-rule,$(addsuffix .ok,$(call ~mmap-minfiles,$1,$(call ~nth,4,$(call ^u,$(mod))))),$(call ~mmap-minfiles,$1,$(call ~nth,4,$(call ^u,$(mod)))),$2,$(call ~mmap-minfiles,$1,$(call ~mmap-all-requires,$1,$(call ^d,$(call ~nth,4,$(call ^u,$(mod))))))))))),)
-~exe-rules = $(call ^Y,$(call ~scan-modules,odir!=$(call ^d,$(dir $1)) rebundle!=$(call ^d,$(if $(call ~eq?,$(subst apply,,~apply),$(subst compile-file,,~compile-file)),1,$(if $4,,$(error Warning: must use --boot; bundles are unusable)))),$(call ~append,$2,$(if $(if $3,,1),$(subst %,trace,$(if $4,%.scm,///%.min))),$(if $4,$(subst %,scam-ct,$(if $4,%.scm,///%.min)))),$(call ~scan-modules,$(call ~append,boot!=1,odir!=$(call ^d,$(dir $1)) rebundle!=$(call ^d,$(if $(call ~eq?,$(subst apply,,~apply),$(subst compile-file,,~compile-file)),1,$(if $4,,$(error Warning: must use --boot; bundles are unusable))))),$(call ^d,$(subst %,runtime,$(if $4,%.scm,///%.min))) $(call ^d,$(subst %,scam-ct,$(if $4,%.scm,///%.min))))),$(notdir $(basename $(call ~append,$2,$(if $(if $3,,1),$(subst %,trace,$(if $4,%.scm,///%.min))),$(if $4,$(subst %,scam-ct,$(if $4,%.scm,///%.min)))))),,,,,,,,$`(call ~link-rule,$(call ^E,$1),$`(call ~mmap-minfiles,$`1,$`2),$`(call ~mmap-okfiles,$`1,$`2),$`(call ~mmap-objects,$`1,$`(call ~mmap-all-requires,$`1,$`2)),$`(call ~mmap-objects,$`1,runtime),$(call ^E,$5))$`(call ~mmap-rules,$`1,$`(call ~mmap-objects,$`1,runtime)))
-~build = $(eval $(call ~dbg-print,B,Eval: %s,$(call ~rule,.PHONY,,/exe /dir,)$(call ~rule,/exe,,/dir $(call ^d,$1),)$(call ~rule,/dir,,,$(call ^d,mkdir -p $`(dir $(call ^E,$1))))$(call ~exe-rules,$1,$2,$(call ~dict-get,no-trace,$3),$(call ~dict-get,boot,$3),$(call ~dict-get,symbols,$3))))
+~compile-rule = $(call ~rule,$1,$(call ~append,$2,$3,$(~*self*)),$4,$(call ^d,: $`(and $`(call ~build-message,compiling,$(call ^E,$1))1,$`(call ~compile-file,$(call ^E,$2),$(call ^E,$1),$(call ^E,$5),$(call ^E,$6)))))
+~prologue := \#!/bin/bash$':; for v in "$`{@//!/!1}" ; do v=$`{v// /!0} ; v=$`{v//	/!+}; a[++n]=$`{v:-!.} ; done ; LC_ALL=C SCAM_ARGS=$`{a[*]} exec make -Rr --no-print-directory -j $`{SCAM_JOBS:-9} -f"$`0" 9>&1$'SHELL:=/bin/bash$'
+define ~epilogue
+$`(eval $`(value $(call ~module-var,$3)))
+$`(call ^start,$(call ~module-id,$1),$2,$`(value SCAM_ARGS))
+
+endef
+define ~link
+$(and $(call ~build-message,linking,$1)1,$(call ~write-file,$1,$(~prologue)$(foreach mod,$2,
+$ define $(call ~module-var,$(call ^u,$(mod)))
+$(call ^Y,$(call ~module-read-obj,$(call ^u,$(mod))),,,,,,,,,$(if $5,$(value ~identity),$(value ~strip-comments)))
+$ endef
+)$(call ~epilogue,$3,$(call ~gen-global-name,main,),$4))1,$(shell chmod +x $(call ~quote-sh-arg,$1)))
+endef
+~link-rule = $(call ~rule,$1,$4,$5,$(call ^d,: $(call ^Y,$(call ~sort-by,$`(notdir $`1),$2),,,,,,,,,$``(call ~link,$(call ^E,$1,`),$`(call ^E,$`1),$(call ^E,$3,`),$(call ^E,$6,`),$(call ^E,$7,`)))))
+~test-rule = $(call ^Y,$(call ~module-object-file,$1),,,,,,,,,$`(call ~rule,$`1.ok,$`1,,$`(call ^d,$`(if $`(if $`(~*is-quiet*),,1),echo '... running '$`(subst $``,$``$``,$`(call ~quote-sh-arg,$`(basename $`1))) >&2)$`(call ^Y,$`(call ~sort-by,$``(notdir $``1),$(call ^E,$2)),$`(basename $`1),,,,,,,,$```(call ~link,$``(call ^E,$``2),$``(call ^E,$``1),$(call ^E,$1,``),$(call ^E,$3,``),))) $`(call ^d,$`(MAKE) -s -f $`(basename $`1)) $`(call ^d,touch $`1.ok)))
+~mmap-all-deps = $(call ^set,~*mmap*,$(call ^set,~*mmap*,$1,$(~*mmap*)),$(call ~traverse-graph,$2,$`(call ~append,$`(call ~nth,3,$`(call ~assoc-initial,$`(subst !,!1,$`(call ^d,$`1)),$`(~*mmap*))),$`(call ~nth,4,$`(call ~assoc-initial,$`(subst !,!1,$`(call ^d,$`1)),$`(~*mmap*)))),))
+~mmap-rule = $(if $(filter-out '%,$(call ~nth,1,$2)),$(call ~compile-rule,$(call ~module-object-file,$(call ~nth,1,$2)),$(call ~nth,1,$2),$(call ~origins-to-obj-files,$(call ~append,$(call ~nth,3,$2),$(call ~nth,4,$2))),$(filter-out $(call ~module-object-file,$(call ~nth,1,$2)).ok,$(call ~mmap-okfiles,$1,$(call ~append,$(call ~nth,3,$2),$(call ~nth,4,$2)))),$(call ~mmap-all-deps,$1,$(call ~append,$(call ~nth,3,$2),$(call ~nth,4,$2))),$(call ~nth,5,$2)))$(if $(call ~nth,2,$2),$(call ~test-rule,$(call ~nth,2,$2),$(call ~mmap-all-requires,$1,$(call ^d,$(call ~nth,2,$2))),$3))
+~mmap-rules = $(subst |1,|,$(subst |0, ,$(subst $  ,,$(foreach mod,$1,$(subst $  ,|0,$(subst |,|1,$(call ~mmap-rule,$1,$(call ^u,$(mod)),$2)))))))
+~exe-rules = $(and $(and $(if $(~*is-boot*),,1),$(call ~eq?,mmap-rules,~mmap-rules),$(call ~fatal,compiler not compatible with its output; use --boot))1,$(call ^Y,$(call ~scan-modules,rt!=$(call ^d,$(if $(~*is-boot*),runtime.scm,'runtime)) ct!=$(call ^d,$(if $(~*is-boot*),scam-ct.scm,'scam-ct)),$(call ~append,$(foreach s,$2,$(call ^d,$(or $(call ~file-exists?,$(call ^u,$s)),$(call ~fatal,source file %s does not exist,$(call ^u,$s))))),$(if $(if $3,,1),$(if $(~*is-boot*),trace.scm,'trace))),$(call ~scan-modules,rt!=$(call ^d,$(if $(~*is-boot*),runtime.scm,'runtime)),$(call ^d,$(if $(~*is-boot*),scam-ct.scm,'scam-ct)),$(call ~scan-modules,,$(call ^d,$(if $(~*is-boot*),runtime.scm,'runtime))))),$(call ~append,$(foreach s,$2,$(call ^d,$(or $(call ~file-exists?,$(call ^u,$s)),$(call ~fatal,source file %s does not exist,$(call ^u,$s))))),$(if $(if $3,,1),$(if $(~*is-boot*),trace.scm,'trace))),$(call ^u,$(word 1,$2)),,,,,,,$`(call ~link-rule,$(call ^E,$1),$`(call ~mmap-all-requires,$`1,$`2),$`3,$`(call ~origins-to-obj-files,$`2),$`(call ~mmap-okfiles,$`1,$`2),$`(if $`(~*is-boot*),runtime.scm,'runtime),$(call ^E,$4))$`(call ~mmap-rules,$`1,$`(if $`(~*is-boot*),runtime.scm,'runtime))))
+~build = $(and $(call ^set,~*is-boot*,$(call ~dict-get,boot,$3))1,$(call ~build-eval,$(call ~rule,.PHONY,ALL DIR,,)$(call ~rule,ALL,DIR $(call ^d,$1),,$(if $(call ~dict-find,run,$3),$(call ^d,SCAM_ARGS=$(call ~quote-sh-arg,$(call ~dict-get,run,$3)) $`(MAKE) -f $(call ~quote-sh-arg,$1))))$(call ~rule,DIR,,,$(call ^d,mkdir -p $`(dir $(call ^E,$1))))$(call ~exe-rules,$1,$2,$(call ~dict-get,no-trace,$3),$(if $(call ~dict-get,no-syms,$3),,1))))
 
 endef
  
-define ///compile.min
+define [mod-'compile]
 # compiled from compile.scm
-# Requires: core parse gen gen0 gen1 io macros runtime
-# Requires: scam-ct
-# Exports: compile-file_6 construct-file&p;5;\.;\:IL6`']!N|compiled|from|`[]1]0`']!n`<]if],1[|4|0],1:IL6|@'}!N@0Requires:@0|@[}4}0|@'}!n`<]if],1[|5|0],1:IL6|@'}!N@0Requires:@0|@[}5}0|@'}!n`>]~env-export-line],1[|2|0`[]3]0 compile-prelude_1 compile-text_4 ct-mod#2;\.;x;\';scam-ct rt-mod#2;\.;x;\';runtime
-$(call ^require,core)
-$(call ^require,parse)
-$(call ^require,gen)
-$(call ^require,gen0)
-$(call ^require,gen1)
-$(call ^require,io)
-$(call ^require,macros)
-~compile-text = $(call ^set,~*compile-subject*,$(call ^set,~*compile-subject*,$(call ~penc,$1),$(~*compile-subject*)),$(call ^set,~*compile-file*,$(call ^set,~*compile-file*,$3,$(~*compile-file*)),$(call ~c0-block-cc,$2,$(call ~parse-subject,$(~*compile-subject*)),$`(call ~conj,$`(call ~gen1,$`2,$(call ^E,$4)),$`1))))
-~compile-prelude = $(if $(if $1,,1),$(call ~append,$(call ~get-module-env,runtime,),$(call ~use-module,scam-ct)))
-define ~compile-file
-$(and $(if $(findstring B,$(SCAM_DEBUG)),$(call ~printf,compile-file: %s -> %s%s
- mod-files = %s
- reqs = %s
- uses = %s
-,$1,$2,$(if $3, [--boot]),$4,$5,$6))1,$(call ^set,~*compile-mods*,$(call ^set,~*compile-mods*,$4,$(~*compile-mods*)),$(call ^Y,$(call ~read-file,$1),$2,$(call ~compile-prelude,$3),,,,,,,$`(call ^Y,$`(call ~compile-text,$`1,$`3,$(call ^E,$1),$`2),$`1,$(call ^E,$1),$`2,,,,,,$``(if $``(call ^u,$``(word 1,$``1)),$``(and $``(foreach e,$``(call ^u,$``(word 1,$``1)),$``(call ^d,$``(info $``(call ~describe-error,$``(call ^u,$``e),$``2,$``3))))1,$``(error $``(subst %S,$``(if $``(call ~eq?,1,$``(words $``(call ^u,$``(word 1,$``1)))),,s),compilation error%S))),$``(call ~write-file,$``4,# compiled from $``3
-$``(if $(call ^E,$5,`),# Requires: $(call ^E,$5,`)
-)$``(if $(call ^E,$6,`),# Requires: $(call ^E,$6,`)
-)$``(call ~env-export-line,$``(call ~nth,3,$``1))$``(call ~nth,2,$``1)))))))
+# Requires: 'core 'parse 'gen 'gen0 'gen1 'io 'macros 'utf8 'scam-ct 'runtime
+# Uses: 'scam-ct
+# Exports: compile-file_4 error-if+compile-module_3 implicit-mod)3 trim-hashbang+construct-file&p;5;\.;\:IL6`']!N|compiled|from|`[]1]0`']!n`<]if],1[|4|0],1:IL6|@'}!N@0Requires:@0|@<}foreach}@1'@0m}@1[@04@00}@1>@0^d@0@11>@10~module-id@10@{>@110^u@110@{1:IL1@{0m|@'}!n`<]if],1[|5|0],1:IL6|@'}!N@0Uses:@0|@<}foreach}@1'@0m}@1[@05@00}@1>@0^d@0@11>@10~module-id@10@{>@110^u@110@{1:IL1@{0m|@'}!n`>]~env-export-line],1[|2|0`[]3]0 compile-prelude_1 compile-text_4
+$(call ^require,'core)
+
+$(call ^require,'parse)
+
+$(call ^require,'gen)
+
+$(call ^require,'gen0)
+
+$(call ^require,'gen1)
+
+$(call ^require,'io)
+
+$(call ^require,'macros)
+
+$(if $(and ,$(and $(call ^require,'utf8)1,),$(and $(call ^require,'scam-ct)1,)),)
+~compile-text = $(call ^set,~*compile-subject*,$(call ^set,~*compile-subject*,$(call ~penc,$1),$(~*compile-subject*)),$(call ^set,~*compile-file*,$(call ^set,~*compile-file*,$3,$(~*compile-file*)),$(call ~c0-block-cc,$2,$(call ~parse-subject,$(~*compile-subject*)),$`(call ~gen1,$`2,$(call ^E,$4)) env!=$`(call ^d,$`1))))
+~compile-prelude = $(call ~append,$(if $(if $(findstring R,$1),,1),$(call ~get-module-env,'runtime,)),$(if $(and $(if $(findstring C,$1),,1),$(if $(~*is-boot*),,1)),$(call ~use-module-env,'scam-ct)))
+define ~trim-hashbang
+$(if $(filter #%,$(word 1,$1)),
+$(call ~concat-vec,$(wordlist 2,99999999,$(call ~split,
+,$1)),
+),$1)
 endef
+~implicit-mod = $(if $(if $(findstring $2,$3),,1),$(if $(~*is-boot*),$1.scm,'$1))
+define ~compile-module
+$(call ^Y,$(call ~compile-text,$(call ~trim-hashbang,$(call ~read-file,$1)),$(call ^set,~*compile-file*,$(call ^set,~*compile-file*,$1,$(~*compile-file*)),$(call ~compile-prelude,$3)),$1,$2),$(call ~implicit-mod,runtime,$3,R),$(call ~implicit-mod,scam-ct,$3,C),$1,$2,,,,,$`(if $`(call ~dict-get,errors,$`1),$`(and $`(foreach e,$`(call ~dict-get,errors,$`1),$`(call ^d,$`(info $`(call ~describe-error,$`(call ^u,$`e),$`(call ~trim-hashbang,$`(call ~read-file,$(call ^E,$1))),$`4))))1,$`(subst S,$`(if $`(word 2,$`(call ~dict-get,errors,$`1)),s,),compilation errorS)),$`(and $`(call ~mkdir-p,$`(dir $`5))1,$`(call ~write-file,$`5,# compiled from $`4
+$`(if $`(call ~append,$`(call ~dict-get,require,$`1),$`2),# Requires: $`(foreach m,$`(call ~append,$`(call ~dict-get,require,$`1),$`2),$`(call ^d,$`(call ~module-id,$`(call ^u,$`m))))
+)$`(if $`(call ~append,$`(call ~dict-get,use,$`1),$`3),# Uses: $`(foreach m,$`(call ~append,$`(call ~dict-get,use,$`1),$`3),$`(call ^d,$`(call ~module-id,$`(call ^u,$`m))))
+)$`(call ~env-export-line,$`(call ~dict-get,env,$`1))$`(call ~dict-get,code,$`1)))))
+endef
+~error-if = $(if $1,$(error $1))
+~compile-file = $(call ^set,~*file-mods*,$(call ^set,~*file-mods*,$(foreach m,$3,$(call ^d,$(if $(filter-out '%,$(call ^u,$m)),$(call ~module-id,$(call ^u,$m))))),$(~*file-mods*)),$(call ~error-if,$(call ~compile-module,$1,$2,$4)))
 
 endef
  
-define ///core.min
+define [mod-'core]
 # compiled from core.scm
-# Requires: runtime
-# Requires: scam-ct
-# Exports: intersperse_2 foldr_3 foldl_3 index-of_2 assoc&x;2;\.;\>;~%-initial`<]subst],1'|@],1'|@1],1>|^d|@[}1}0`[]2]0 assoc-vec&x;2;\.;\>;~assoc-initial`>]^d],1[|1|0`[]2]0 assoc-initial_2 sort-by_2 memoize_1 memoenc)1]or]2]or]3 mcache)6 1!S_1 split_2 uniq_1 see_2 fexpect&x;2;\.;\>;~expect-x`>]~format],1[|1|0`>]~format],1[|2|0`:IL9]core.scm:487 expect&x;2;\.;\>;~%-x`[]1]0`[]2]0`:IL9]core.scm:477 expect-x_3 printf_1]or]more sprintf_1]or]more vsprintf_2 format_1 format-custom)2 format-add_1 *format-funcs*#0;~%;p format-record+data-foreach)4 format-dict+symbol?+format_1 dict-keys_1 dict-compact_1]or]2 dict-get_2]or]3 dict-find_2 dict-value_1;\.;\>;~nth`']2`<]subst],1'|@=],1'|}],1[|1|0 dict-key_1;\.;\>;~promote`<]subst],1'|@8],1'|!p],1<|word|@'}1|@<}subst}@1'@0@11=}@1'@0@10}@1[@01@00 append_0]or]more filtersub&x;3;\.;\<;patsubst`[]1]0`[]2]0`<]filter],1[|1|0],1[|3|0 word-index?_1 numeric?_1 while_3 reverse_1 rev-zeroes)2 rev-by-10s)2 indices&x;1;\.;\>;~%-a`<]words],1[|1|0 indices-a+indices-b)3 vec-or_1;\.;\>;^u`<]word],1'|1],1<|filter-out|@'}@1.|@[}1}0 select-words_2 select-vec_2 butlast_1 strip-vec_1;\.;\<;filter`']!p`[]1]0 last_1;\.;\>;~promote`<]%word],1[|1|0 conj_2 cons_2 concat-vec_1]or]2 xor_2 identity_1;\.;\[;1;0 eq?_2 SCAM!TDEBUG#0;%;p
+# Requires: 'runtime
+# Uses: 'scam-ct
+# Exports: intersperse_2 foldr_3 foldl_3 index-of_2 assoc&x;2;\.;\>;~%-initial`<]subst],1'|@],1'|@1],1>|^d|@[}1}0`[]2]0 assoc-vec&x;2;\.;\>;~assoc-initial`>]^d],1[|1|0`[]2]0 assoc-initial_2 sort-by_2 memoize_1 memoenc)1]or]2]or]3 mcache)6 1!S_1 split_2 uniq_1 see_2 fexpect&x;2;\.;\>;~expect-x`>]~format],1[|1|0`>]~format],1[|2|0`:IL9]core.scm:518 assert&x;1;\.;\>;~%-x`[]1]0`:IL9]core.scm:507 assert-x)2 expect&x;2;\.;\>;~%-x`[]1]0`[]2]0`:IL9]core.scm:497 expect-x_3 printf_1]or]more sprintf_1]or]more vsprintf_2 format_1 format-custom)2 format-add_1 *format-funcs*#0;~%;p format-record+data-foreach)4 format-dict+symbol?+format_1 dict-collate_1 dict-keys_1 dict-compact_1]or]2 dict-set_3 dict-get_2]or]3 dict-find_2 dict-value_1;\.;\>;~nth`']2`<]subst],1'|@=],1'|}],1[|1|0 dict-key_1;\.;\>;~promote`<]subst],1'|@8],1'|!p],1<|word|@'}1|@<}subst}@1'@0@11=}@1'@0@10}@1[@01@00 append_0]or]more filtersub&x;3;\.;\<;patsubst`[]1]0`[]2]0`<]filter],1[|1|0],1[|3|0 word-index?_1 numeric?_1 while_3 reverse_1 rev-zeroes)2 rev-by-10s)2 indices&x;1;\.;\>;~%-a`<]words],1[|1|0 indices-a+indices-b)3 vec-or_1;\.;\>;^u`<]word],1'|1],1<|filter-out|@'}@1.|@[}1}0 select-words_2 select-vec_2 butlast_1 strip-vec_1;\.;\<;filter`']!p`[]1]0 last_1;\.;\>;~promote`<]%word],1[|1|0 conj_2 cons_2 concat-vec_1]or]2 xor_2 identity_1;\.;\[;1;0 eq?_2 SCAM!TDEBUG#0;%;p
 ~eq? = $(if $(findstring 1$1,$(findstring 1$2,1$1)),1)
 ~identity = $1
 ~xor = $(if $1,$(if $2,,$1),$2)
@@ -132,8 +150,10 @@ define ///core.min
 ~dict-value = $(call ~nth,2,$(subst !=, ,$1))
 ~dict-find = $(word 1,$(filter $(subst %,!8,$(call ^d,$1))!=%,$2))
 ~dict-get = $(call ~nth,2,$(subst !=, ,$(call ~dict-find,$1,$2))$(if $3, x $(call ~demote,$3)))
+~dict-set = $(foreach p,$(subst %,!8,$(call ^d,$1))!=,$p$(call ^d,$2) $(filter-out $p%,$3))
 ~dict-compact = $(if $(if $1,,1),$2,$(call ~append,$(word 1,$1),$(call ~dict-compact,$(filter-out $(word 1,$(subst !=,!=% ,$(word 1,$1))),$(wordlist 2,99999999,$1)))))
 ~dict-keys = $(foreach e,$1,$(subst !8,%,$(word 1,$(subst !=, ,$e))))
+~dict-collate = $(foreach p,$(word 1,$(subst !=,!= ,$(word 1,$1))),$(call ~append,$p$(call ^d,$(patsubst $p%,%,$(filter $p%,$1))),$(call ~dict-collate,$(filter-out $p%,$1))))
 define ~symbol?
 $(and $(findstring $1,$(call ~promote,$(word 1,$1))),$(if $(or $(findstring 
 ,$1),$(findstring $[,$1),$(findstring $],$1),$(findstring [,$1),$(findstring ],$1),$(findstring $(if ,,,),$1),$(findstring ;,$1),$(findstring !=,$1)),,1),$1)
@@ -161,6 +181,7 @@ A: $1
 B: $2
 )1,$(if $(if $(findstring K,$(SCAM_DEBUG)),,1),$(error ))))
 endef
+~assert-x = $(or $1,$(error $(info $2: error: assertion failed)))
 define ~see
 $(if $(findstring $1,$2),1,$(and $(info Expected: $(subst 
 ,
@@ -184,12 +205,13 @@ endef
 
 endef
  
-define ///escape.min
+define [mod-'escape]
 # compiled from escape.scm
-# Requires: core runtime
-# Requires: scam-ct
+# Requires: 'core 'runtime
+# Uses: 'scam-ct
 # Exports: protect-define_1 protect-rhs_1 protect-lhs_1 protect-expr_1 protect-arg_1 make-balanced)2 check-balance+check-balance-r+balance+balance-match+balance-match-r)3 balance2+protect-trim_1 protect-ltrim_1 replace-hash)1;\.;\<;subst`']!N`']$!O`[]1]0 replace-nl)1;\.;\<;subst`']!n`']$!E`[]1]0 quote-hash+protect-hash2+escape_1;\.;\<;subst`']$`']$!D`[]1]0
-$(call ^require,core)
+$(call ^require,'core)
+
 ~escape = $(subst $`,$``,$1)
 define ~protect-hash2
 $(if $(findstring \.#,$1),$(call ~protect-hash2,$(subst \.#,.#\\,$1)),$(subst .#,,$1))
@@ -238,24 +260,40 @@ endef
 
 endef
  
-define ///gen.min
+define [mod-'gen]
 # compiled from gen.scm
-# Requires: core io parse escape runtime
-# Requires: scam-ct
-# Exports: begin-block_1 resolve_2 base-env#0;~%;p builtin-names#0;~%;x builtins-3#0;~%;p builtins-2#0;~%;p builtins-1#0;~%;p use-module_1 get-module-env_2 mod-find+get-file-env)2 *dummy-env*#0;~%;p env-load&p;1;\.;\<;subst`'],1n`']!n`>]~env-expand],1>|^u|@<}word}@1'@01}@1<@0patsubst@0@11'@10!N@{0Exports:@{0!p@0@11'@10!p@0@11<@10filter@10@{'@110!N@{10Exports:@{10!p@10@{<@110if@110@{1<@{0filter@{0@{11'@{10///!p@{0@{11[@{101@{100@110@{1>@{0~split@{0@{11'@{10!n@{0@{11<@{10value@{10@{{[@{1101@{1100@110@{1>@{0~read-lines@{0@{11[@{101@{100@{0@{11'@{101@{0@{11'@{104 env-parse&p;1;\.;\<;subst`'],1n`']!n`>]~env-expand],1>|^u|@<}word}@1'@01}@1<@0patsubst@0@11'@10!N@{0Exports:@{0!p@0@11'@10!p@0@11<@10filter@10@{'@110!N@{10Exports:@{10!p@10@{[@1101@1100 env-export-line_1 env-export&p;1;\.;\<;filter`']!p`<]foreach],1'|b],1[|1|0],1<|if|@<}if}@1<@0filter@0@11'@10i@0@11<@10word@10@{'@1103@10@{>@110~nth@110@{1'@{02@110@{1<@{0subst@{0@{11'@{10@{{=@{0@{11'@{10@{110@{0@{11:IL1@{10b}@1'@0@1.}@1'@01|@:IL1}b env-import)2 get-module-env)2 import-binding)2 env-expand+env-compress+detokenize-key+tokenize-key+env-exp+env-cmp+check-argc_3 err-expected_5]or]6]or]7 form-description+compile-warn_2]or]3]or]4]or]5 gen-error_2]or]more gensym_2 current-depth_1 gensym-name_3 gen-global-name_2 il-subst_3 il-promote_1 il-demote_1 il-concat_1 il-flatten+il-merge-strings)2 NoOp#2;\.;x;\:IL6`'],1'`']|`'],1. *compile-mods*#0;~%;x *compile-outfile*#0;~%;x *compile-file*#0;~%;x *compile-subject*#0;~%;x LambdaMarkerKey#2;\.;x;\';: NoGlobalName#2;\.;x;\';: EDefn.is-public?&x;1;\.;\<;filter`']x`<]word],1'|3],1[|1|0 EDefn.set-scope&p;2;\.;\>;~append`<]wordlist],1'|1],1'|2],1[|1|0`[]2]0`<]wordlist],1'|4],1'|99999999],1[|1|0 EDefn.scope&x;1;\.;\<;word`']3`[]1]0 EVar#4;S]W;x`:EDefn0 EFunc#4;S]W]S]L;x`:EDefn1 EIL#4;S]W]L;x`:EDefn2 EXMacro#4;S]W;x`:EDefn3 ERecord#4;S]W]S;x`:EDefn4 EBuiltin#4;S]W]S;x`:EDefn5 EArg#4;W;x`:EDefn6 EMarker#4;W;x`:EDefn7 IString#4;S;x`' IVar#4;S;x`:IL1 IBuiltin#4;W]L;x`< ICall#4;S]L;x`> ILocal#4;W]W;x`[ IFuncall#4;L;x`:IL5 IConcat#4;L;x`:IL6 IBlock#4;L;x`:IL7 ILambda#4;S;x`:IL8 IWhere#4;S;x`:IL9 IEnv#4;S]L;x`:IL10
-$(call ^require,core)
-$(call ^require,io)
-$(call ^require,parse)
-$(call ^require,escape)
-$(if $(call ^add-tags,!1:IL0!=IString!0S !1:IL1!=IVar!0S !1:IL2!=IBuiltin!0W!0L !1:IL3!=ICall!0S!0L !1:IL4!=ILocal!0W!0W !1:IL5!=IFuncall!0L !1:IL6!=IConcat!0L !1:IL7!=IBlock!0L !1:IL8!=ILambda!0S !1:IL9!=IWhere!0S !1:IL10!=IEnv!0S!0L),)
+# Requires: 'core 'io 'parse 'escape 'runtime
+# Uses: 'scam-ct
+# Exports: begin-block_1 resolve_2 base-env#0;~%;p builtin-names#0;~%;x builtins-3#0;~%;p builtins-2#0;~%;p builtins-1#0;~%;p load-ext+use-module-env_1 get-module-env_2 env-import_2 env-load&p;1;\.;\<;subst`'],1n`']!n`>]~env-expand],1>|^u|@<}word}@1'@01}@1<@0patsubst@0@11'@10!N@{0Exports:@{0!p@0@11'@10!p@0@11<@10filter@10@{'@110!N@{10Exports:@{10!p@10@{>@110~module-read-lines@110@{1[@{01@{00 env-parse&p;1;\.;\<;subst`'],1n`']!n`>]~env-expand],1>|^u|@<}word}@1'@01}@1<@0patsubst@0@11'@10!N@{0Exports:@{0!p@0@11'@10!p@0@11<@10filter@10@{'@110!N@{10Exports:@{10!p@10@{[@1101@1100 env-export-line_1 env-strip-exports&p;1;\.;\<;filter`']!p`<]foreach],1'|b],1[|1|0],1<|if|@<}if}@1<@0filter@0@11'@10i@0@11<@10word@10@{'@1103@10@{>@110~nth@110@{1'@{02@110@{1<@{0subst@{0@{11'@{10@{{=@{0@{11'@{10@{110@{0@{11:IL1@{10b}@1'@0@1.}@1'@01|@:IL1}b env-strip-imports)2 import-binding)2 env-expand+env-compress+detokenize-key+tokenize-key+env-exp+env-cmp+check-argc_3 err-expected_5]or]6]or]7 form-description+compile-warn_2]or]3]or]4]or]5 gen-error_2]or]more gensym_2 current-depth_1 gensym-name_3 gen-global-name_2 module-read-lines+locate-module_2 module-has-binary?_1 module-is-source?&x;1;\.;\<;filter-out`']!E!p`[]1]0 module-var_1 module-id_1 module-opath_1 modid-var&x;1;\.;\:IL6`']!Hmod-`[]1]0`']!I modid-file_1 il-subst_3 il-promote_1 il-demote_1 il-concat_1 il-flatten+il-merge-strings)2 NoOp#2;\.;x;\:IL6`'],1'`']|`'],1. *obj-dir*#0;~%;x *is-boot*#0;~%;x *file-mods*#0;~%;x *compile-outfile*#0;~%;x *compile-file*#0;~%;x *compile-subject*#0;~%;x ErrorMarkerKey#2;\.;x;\';:E LambdaMarkerKey#2;\.;x;\';: NoGlobalName#2;\.;x;\';: EDefn.is-public?&x;1;\.;\<;filter`']x`<]word],1'|3],1[|1|0 EDefn.set-scope&p;2;\.;\>;~append`<]wordlist],1'|1],1'|2],1[|1|0`[]2]0`<]wordlist],1'|4],1'|99999999],1[|1|0 EDefn.scope&x;1;\.;\<;word`']3`[]1]0 EVar#4;S]W;x`:EDefn0 EFunc#4;S]W]S]L;x`:EDefn1 EIL#4;S]W]L;x`:EDefn2 EXMacro#4;S]W;x`:EDefn3 ERecord#4;S]W]S;x`:EDefn4 EBuiltin#4;S]W]S;x`:EDefn5 EArg#4;W;x`:EDefn6 EMarker#4;W;x`:EDefn7 IString#4;S;x`' IVar#4;S;x`:IL1 IBuiltin#4;W]L;x`< ICall#4;S]L;x`> ILocal#4;W]W;x`[ IFuncall#4;L;x`:IL5 IConcat#4;L;x`:IL6 IBlock#4;L;x`:IL7 ILambda#4;S;x`:IL8 IWhere#4;S;x`:IL9 ICrumb#4;W]S;x`:IL10 IEnv#4;S]L;x`:IL11
+$(call ^require,'core)
+
+$(call ^require,'io)
+
+$(call ^require,'parse)
+
+$(call ^require,'escape)
+
+$(if $(call ^add-tags,!1:IL0!=IString!0S !1:IL1!=IVar!0S !1:IL2!=IBuiltin!0W!0L !1:IL3!=ICall!0S!0L !1:IL4!=ILocal!0W!0W !1:IL5!=IFuncall!0L !1:IL6!=IConcat!0L !1:IL7!=IBlock!0L !1:IL8!=ILambda!0S !1:IL9!=IWhere!0S !1:IL10!=ICrumb!0W!0S !1:IL11!=IEnv!0S!0L),)
 $(if $(call ^add-tags,!1:EDefn0!=EVar!0S!0W !1:EDefn1!=EFunc!0S!0W!0S!0L !1:EDefn2!=EIL!0S!0W!0L !1:EDefn3!=EXMacro!0S!0W !1:EDefn4!=ERecord!0S!0W!0S !1:EDefn5!=EBuiltin!0S!0W!0S !1:EDefn6!=EArg!0W !1:EDefn7!=EMarker!0W),)
+~*is-boot* := 
+~*obj-dir* := .scam/
 ~il-merge-strings = $(if $(filter !:IL0,$(firstword $(call ^u,$(word 1,$1)))),$(call ~il-merge-strings,$(wordlist 2,99999999,$1),$2$(call ^n,2,$(call ^u,$(word 1,$1)))),$(call ~append,$(if $2,$(call ^d,!:IL0 $(call ^d,$2))),$(word 1,$1),$(if $(word 2,$1),$(call ~il-merge-strings,$(wordlist 2,99999999,$1),))))
 ~il-flatten = $(filter %,$(foreach node,$1,$(if $(filter !:IL6,$(firstword $(call ^u,$(node)))),$(call ~il-flatten,$(wordlist 2,99999999,$(call ^u,$(node)))),$(node))))
 ~il-concat = $(call ^Y,$(call ~il-merge-strings,$(call ~il-flatten,$1),),,,,,,,,,$`(if $`(word 2,$`1),!:IL6 $`1,$`(or $`(call ^u,$`(word 1,$`1)),!:IL0 !.)))
 ~il-demote = $(or $(if $(filter !:IL0,$(firstword $1)),!:IL0 $(call ^d,$(word 2,$1)),$(if $(filter !:IL3,$(firstword $1)),$(if $(call ~eq?,$(call ^n,2,$1),^u),$(call ^u,$(word 1,$(wordlist 3,99999999,$1)))))),!:IL3 ^d $(call ^d,$1))
 ~il-promote = !:IL3 ^u $(call ^d,$1)
 ~il-subst = $(if $(filter !:IL0,$(firstword $3)),!:IL0 $(call ^d,$(subst $1,$2,$(call ^n,2,$3))),!:IL2 subst $(call ^d,!:IL0 $(call ^d,$1)) $(call ^d,!:IL0 $(call ^d,$2)) $(call ^d,$3))
-~gen-global-name = $(if $(filter %&global,$2),$1,$(SCAM_NS)$1)
+~modid-file = $(~*obj-dir*)$(patsubst '%,%,$1).min
+~module-opath = $(call ~escape-path,$(basename $1))
+~module-id = $(or $(filter '%,$1),$(if $(~*is-boot*),')$(call ~module-opath,$1))
+~module-var = [mod-$(call ~module-id,$1)]
+~module-has-binary? = $(or $(filter '%,$1),$(filter $(call ~module-id,$1),$(~*file-mods*)))
+~locate-module = $(or $(firstword $(foreach dir,$(call ~append,$(dir $1),$(subst :, ,$(value SCAM_LIBPATH))),$(call ~file-exists?,$(call ~resolve-path,$(dir),$(if $(~*is-boot*),$(patsubst '%,%,$2),$2).scm)))),$(and $(if $(~*is-boot*),,1),$(call ^Y,$(subst '',','$2),,,,,,,,,$`(if $`(if $`(filter-out u%,$`(flavor [mod-$`1])),1),$`1))))
+define ~module-read-lines
+$(if $(filter '%,$1),$(wordlist 1,4,$(call ~split,
+,$(value $(call ~module-var,$1)))),$(call ~read-lines,$(call ~modid-file,$(call ~module-id,$1)),1,4))
+endef
+~gen-global-name = $(and $(~*is-boot*),$(if $(filter %&global,$2),,1),~)$1
 ~gensym-name = $(if $(filter $1&$3!=%,$2),$(call ~gensym-name,$1,$2 .,$(words $2)),$1&$3)
 ~current-depth = $(call ^Y,$(call ~dict-get,:,$1),,,,,,,,,$`(if $`(filter !:EDefn7,$`(firstword $`1)),$`(word 2,$`1)))
 ~gensym = !:P2 0 $(call ^d,$(call ~gensym-name,$(call ~symbol-name,$1),$2,))
@@ -281,21 +319,19 @@ $(subst !n,
 ,$(call ~detokenize-key,$(call ~env-exp,$1)))
 endef
 ~import-binding = $(if $(filter x,$(word 3,$2)),$(call ^k,$1)!=$(call ^d,$(call ~append,$(wordlist 1,2,$2),i,$(wordlist 4,99999999,$2))))
-~env-import = $(if $2,$1,$(filter %,$(foreach b,$1,$(call ~import-binding,$(call ~promote,$(subst !8,%,$(word 1,$(subst !=, ,$b)))),$(call ~nth,2,$(subst !=, ,$b))))))
+~env-strip-imports = $(if $2,$1,$(filter %,$(foreach b,$1,$(call ~import-binding,$(call ~promote,$(subst !8,%,$(word 1,$(subst !=, ,$b)))),$(call ~nth,2,$(subst !=, ,$b))))))
 define ~env-export-line
 # Exports: $(call ~env-compress,$(filter %,$(foreach b,$1,$(if $(if $(filter i,$(word 3,$(call ~nth,2,$(subst !=, ,$b)))),,1),$b))))
 
 endef
-~*dummy-env* := !.!=$(call ^d,!:EDefn2 !. - !:IL0 !.)
-define ~get-file-env
-$(if $1,$(or $(call ~env-import,$(subst !n,
-,$(call ~env-expand,$(call ^u,$(word 1,$(patsubst #!0Exports:!0%,%,$(filter #!0Exports:!0%,$(if $(filter ///%,$1),$(call ~split,
-,$(value $1)),$(call ~read-lines,$1,1,4)))))))),$2),$(~*dummy-env*)))
+define ~env-import
+$(call ~env-strip-imports,$(subst !n,
+,$(call ~env-expand,$(call ^u,$(word 1,$(patsubst #!0Exports:!0%,%,$(filter #!0Exports:!0%,$(call ~module-read-lines,$1))))))),$2)
 endef
-$(if $(call ~memoize,~get-file-env),)
-~mod-find = $(or $(firstword $(filter %$(notdir $1).min,$(~*compile-mods*))),$(if $(and $(if $(filter %/runtime.min,$(~*compile-mods*)),,1),$(if $(filter-out u%,$(flavor ///$(notdir $1).min)),1)),///$(notdir $1).min,$(info warning: cannot find module $1)))
-~get-module-env = $(call ~get-file-env,$(call ~mod-find,$1),$2)
-~use-module = $(call ^Y,$(call ~get-module-env,$1,),,,,,,,,,$`(if $`1,$`(call ^set,SCAM_MODS,$`(call ^set,SCAM_MODS,$`(~*compile-mods*),$`(SCAM_MODS)),$`(and $`(call ^require,$(call ^E,$1))1,$`(or $`(filter %,$`(foreach e,$`1,$`(if $`(filter !:EDefn3,$`(firstword $`(call ~nth,2,$`(subst !=, ,$`e)))),$`e))),$`(~*dummy-env*))))))
+$(if $(call ~memoize,~env-import),)
+~get-module-env = $(call ^Y,$(call ~locate-module,$(~*compile-file*),$1),,,,,,,,,$`(if $`1,$`(call ~env-import,$`1,$(call ^E,$2)),:E!=$`(call ^d,!:EDefn7 not found)))
+~use-module-env = $(call ^Y,$(call ~locate-module,$(~*compile-file*),$1),,,,,,,,,$`(if $`1,$`(and $`(call ^require,$`(call ~module-id,$`1))1,$`(filter %,$`(foreach e,$`(call ~env-import,$`1,),$`(if $`(filter !:EDefn3,$`(firstword $`(call ~nth,2,$`(subst !=, ,$`e)))),$`e)))),:E!=$`(call ^d,!:EDefn7 not found)))
+~load-ext = $(if $(filter $1,$(~*file-mods*)),$(and $(eval include $(call ~modid-file,$1))1,1))
 ~builtins-1 := abspath basename dir error eval firstword flavor info lastword notdir origin realpath shell sort strip suffix value warning wildcard words
 ~builtins-2 := addprefix addsuffix filter filter-out findstring join word
 ~builtins-3 := .foreach patsubst .subst wordlist
@@ -306,29 +342,35 @@ $(if $(call ~memoize,~get-file-env),)
 
 endef
  
-define ///gen0.min
+define [mod-'gen0]
 # compiled from gen0.scm
-# Requires: core parse escape gen num runtime
-# Requires: scam-ct
-# Exports: c0_2]or]3 c0-error+c0-qq)2]or]3 c0-qq-form)2 QQS#2;\.;p;\';*,* c0-qq)0 c0-D)3 c0-dict-key)2(begin)4 c0-block_2 c0-block-cc_3]or]4]or]5(require)4(declare)4(define)4 c0-def&p;5;\.;\>;~env-strip`[]4]0`>]~%2],1[|1|0],1>|~form-index|@[}2}0],1>|^u|@<}word}@1'@01}@1[@03@00],1>|~get-flags|@[}3}0|@'}1],1>|~skip-flags|@[}3}0|@'}1],1[|5|0],1'|,1. c0-def2)7 c0-def-compound)8 get-argc+c0-def-symbol)7 check-name)2 il-error-node+il-errors+c0-check-body)3(lambda)4 lambda-error)4 c0-lambda)3 lambda-env&p;2;\.;\>;~append`>]~%-args],1[|1|0],1:IL6|@'}.|@>}~current-depth}@1[@02@00`[]2]0 lambda-env-args)2 lambda-env-arg9)2 lambda-arg&p;3;\.;\<;foreach`']name`>]~symbol-name],1[|1|0`<]if],1<|filter|@'}...!p|@:IL1}name],1:IL6|@>}^k}@1<@0or@0@11<@10patsubst@10@{'@110...!p@10@{'@110!p@10@{:IL1@110name@0@11:IL1@10name|@'}@1=|@>}^d}@1[@03@00],1:IL6|@>}^k}@1<@0patsubst@0@11'@10?!p@0@11'@10!p@0@11:IL1@10name|@'}@1=|@>}^d}@1[@02@00 c0-L)6 c0-record)5 special-form-func&p;1;\.;\:IL6`']~ml.special-`[]1]0 c0-call)6 c0-vec_2 c0-S)4 c0-S-error)2 c0-builtin)3 c0-macro)2 c0-ctor)3 c0-local)3 c0-lambda)3 c0-block)2 c0)2]or]3 check-optional-args)1]or]2 expand-macro)5 xlat-macro)4 dots-from-num+xlat-arg)3 xlat-where)2 xlat-node)3 level-count&p;1;\.;\<;words`<]subst],1'|.],1'|.}],1[|1|0 skip-flags_2 get-flags_2 scan-flags-x)3 scan-flags&p;2;\.;\>;~%-x`[]1]0`>]~1!S],1[|2|0`[]2]0 scan-flags-x)3 env-strip_2 block-result&x;3;\.;\<;if`[]1]0`:IL6],1'|@:IL10],1'|}],1>|^d|@[}2}0],1'|}],1[|3|0`[]3]0 get-file-line_1
-$(call ^require,core)
-$(call ^require,parse)
-$(call ^require,escape)
-$(call ^require,gen)
-$(call ^require,num)
-~get-file-line = $(~*compile-file*):$(call ~describe-lnum,$1,$(~*compile-subject*))
-~env-strip = $(if $1,$2,$(if $(filter !:IL10,$(firstword $2)),$(wordlist 3,99999999,$2),$2))
+# Requires: 'core 'parse 'escape 'gen 'num 'runtime
+# Uses: 'scam-ct
+# Exports: c0_2]or]3 c0-error+c0-qq)2]or]3 c0-qq-form)2 QQS#2;\.;p;\';*,* c0-qq)0 c0-D)3 c0-dict-key)2(begin)4 c0-block_2 c0-block-cc_3]or]4]or]5(require)4(declare)4(define)4 c0-def&p;5;\.;\>;~env-strip`[]4]0`>]~%2],1[|1|0],1>|~form-index|@[}2}0],1>|^u|@<}word}@1'@01}@1[@03@00],1>|~get-flags|@[}3}0|@'}1],1>|~skip-flags|@[}3}0|@'}1],1[|5|0],1'|,1. c0-def2)7 c0-def-compound)8 get-argc+c0-def-symbol)7 check-name)2 il-error-node+il-errors+c0-check-body)3(lambda)4 lambda-error)4 c0-lambda)3 lambda-env&p;2;\.;\>;~append`>]~%-args],1[|1|0],1:IL6|@'}.|@>}~current-depth}@1[@02@00`[]2]0 lambda-env-args)2 lambda-env-arg9)2 lambda-arg&p;3;\.;\<;foreach`']name`>]~symbol-name],1[|1|0`<]if],1<|filter|@'}...!p|@:IL1}name],1:IL6|@>}^k}@1<@0or@0@11<@10patsubst@10@{'@110...!p@10@{'@110!p@10@{:IL1@110name@0@11:IL1@10name|@'}@1=|@>}^d}@1[@03@00],1:IL6|@>}^k}@1<@0patsubst@0@11'@10?!p@0@11'@10!p@0@11:IL1@10name|@'}@1=|@>}^d}@1[@02@00 c0-L)6 c0-record)5 special-form-func&p;1;\.;\:IL6`']~ml.special-`[]1]0 c0-call)6 c0-vec_2 c0-S)4 c0-S-error)2 c0-builtin)3 c0-macro)2 c0-ctor)3 c0-local)3 c0-lambda)3 c0-block)2 c0)2]or]3 check-optional-args)1]or]2 expand-macro)5 xlat-macro)4 dots-from-num+xlat-arg)3 xlat-where)2 xlat-node)3 level-count&p;1;\.;\<;words`<]subst],1'|.],1'|.}],1[|1|0 skip-flags_2 get-flags_2 scan-flags-x)3 scan-flags&p;2;\.;\>;~%-x`[]1]0`>]~1!S],1[|2|0`[]2]0 scan-flags-x)3 env-strip_2 block-result&x;3;\.;\<;if`[]1]0`:IL6],1'|@:IL11],1'|}],1>|^d|@[}2}0],1'|}],1[|3|0`[]3]0 get-where_1 *warn-upvals*#0;~%;p
+$(call ^require,'core)
+
+$(call ^require,'parse)
+
+$(call ^require,'escape)
+
+$(call ^require,'gen)
+
+$(call ^require,'num)
+
+~*warn-upvals* := $(findstring U,$(value SCAM_DEBUG))
+~get-where = $(~*compile-file*):$(call ~get-subject-line,$1,$(~*compile-subject*))
+~env-strip = $(if $1,$2,$(if $(filter !:IL11,$(firstword $2)),$(wordlist 3,99999999,$2),$2))
 ~scan-flags-x = $(or $(if $(filter !:P2,$(firstword $(call ~nth,$2,$1))),$(if $(filter &private &public &inline &global,$(call ^n,3,$(call ~nth,$2,$1))),$(call ~scan-flags-x,$1,$(call ~1+,$2),$2))),$3)
 ~get-flags = $(filter %,$(foreach form,$(wordlist $(call ~1+,$2),$(call ~scan-flags-x,$1,$(call ~1+,$2),$2),$1),$(if $(filter !:P2,$(firstword $(call ^u,$(form)))),$(call ^n,3,$(call ^u,$(form))))))
 ~skip-flags = $(wordlist $(call ~1+,$(call ~scan-flags-x,$1,$(call ~1+,$2),$2)),99999999,$1)
 ~xlat-node = $(if $(filter !:IL0,$(firstword $1)),$1,$(if $(filter !:IL2,$(firstword $1)),!:IL2 $(word 2,$1) $(foreach n,$(wordlist 3,99999999,$1),$(call ^d,$(call ~xlat-node,$(call ^u,$n),$2,$3))),$(if $(filter !:IL3,$(firstword $1)),!:IL3 $(call ^d,$(call ^n,2,$1)) $(foreach n,$(wordlist 3,99999999,$1),$(call ^d,$(call ~xlat-node,$(call ^u,$n),$2,$3))),$(if $(filter !:IL4,$(firstword $1)),$(if $(filter 1,$(or $(call ~num-cmp,$(word 3,$1),$2),1)),!:IL4 $(word 2,$1) $(call ~num+,$(word 3,$1),$3),$1),$(if $(filter !:IL6,$(firstword $1)),!:IL6 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-node,$(call ^u,$n),$2,$3))),$(if $(filter !:IL8,$(firstword $1)),!:IL8 $(call ^d,$(call ~xlat-node,$(call ^n,2,$1),$(call ~1+,$2),$3)),$(if $(filter !:IL5,$(firstword $1)),!:IL5 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-node,$(call ^u,$n),$2,$3))),$(if $(filter !:IL7,$(firstword $1)),!:IL7 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-node,$(call ^u,$n),$2,$3))),$1))))))))
-~xlat-where = $(if $(filter !:IL9,$(firstword $1)),!:IL9 $(call ^d,$(call ~get-file-line,$2)),$(if $(filter !:IL2,$(firstword $1)),!:IL2 $(word 2,$1) $(foreach n,$(wordlist 3,99999999,$1),$(call ^d,$(call ~xlat-where,$(call ^u,$n),$2))),$(if $(filter !:IL3,$(firstword $1)),!:IL3 $(call ^d,$(call ^n,2,$1)) $(foreach n,$(wordlist 3,99999999,$1),$(call ^d,$(call ~xlat-where,$(call ^u,$n),$2))),$(if $(filter !:IL6,$(firstword $1)),!:IL6 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-where,$(call ^u,$n),$2))),$(if $(filter !:IL8,$(firstword $1)),!:IL8 $(call ^d,$(call ~xlat-where,$(call ^n,2,$1),$2)),$(if $(filter !:IL5,$(firstword $1)),!:IL5 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-where,$(call ^u,$n),$2))),$(if $(filter !:IL7,$(firstword $1)),!:IL7 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-where,$(call ^u,$n),$2))),$1)))))))
+~xlat-where = $(if $(filter !:IL9,$(firstword $1)),!:IL9 $(call ^d,$(call ~get-where,$2)),$(if $(filter !:IL2,$(firstword $1)),!:IL2 $(word 2,$1) $(foreach n,$(wordlist 3,99999999,$1),$(call ^d,$(call ~xlat-where,$(call ^u,$n),$2))),$(if $(filter !:IL3,$(firstword $1)),!:IL3 $(call ^d,$(call ^n,2,$1)) $(foreach n,$(wordlist 3,99999999,$1),$(call ^d,$(call ~xlat-where,$(call ^u,$n),$2))),$(if $(filter !:IL6,$(firstword $1)),!:IL6 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-where,$(call ^u,$n),$2))),$(if $(filter !:IL8,$(firstword $1)),!:IL8 $(call ^d,$(call ~xlat-where,$(call ^n,2,$1),$2)),$(if $(filter !:IL5,$(firstword $1)),!:IL5 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-where,$(call ^u,$n),$2))),$(if $(filter !:IL7,$(firstword $1)),!:IL7 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-where,$(call ^u,$n),$2))),$1)))))))
 ~xlat-arg = $(if $(filter-out $3,$2),$(call ~xlat-node,$1,0,$(words $(subst .,. ,$(subst :$2,,:$3)))),$1)
 ~dots-from-num = $(wordlist 1,$1,$(subst .,. . . . . . . . ,................))
 ~xlat-macro = $(if $(filter !:IL0,$(firstword $1)),$1,$(if $(filter !:IL2,$(firstword $1)),!:IL2 $(word 2,$1) $(foreach n,$(wordlist 3,99999999,$1),$(call ^d,$(call ~xlat-macro,$(call ^u,$n),$2,$3,$4))),$(if $(filter !:IL3,$(firstword $1)),!:IL3 $(call ^d,$(call ^n,2,$1)) $(foreach n,$(wordlist 3,99999999,$1),$(call ^d,$(call ~xlat-macro,$(call ^u,$n),$2,$3,$4))),$(if $(filter !:IL4,$(firstword $1)),$(if $(call ~eq?,$(word 3,$1),$2),$(call ~xlat-arg,$(or $(call ~nth,$(word 2,$1),$4),!:IL0 !.),.,.$(call ~dots-from-num,$2)),$(if $(filter 1,$(call ~num-cmp,$(word 3,$1),$2)),!:IL4 $(word 2,$1) $(call ~num+,$(word 3,$1),$3),$1)),$(if $(filter !:IL6,$(firstword $1)),!:IL6 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-macro,$(call ^u,$n),$2,$3,$4))),$(if $(filter !:IL8,$(firstword $1)),!:IL8 $(call ^d,$(call ~xlat-macro,$(call ^n,2,$1),$(call ~1+,$2),$3,$4)),$(if $(filter !:IL5,$(firstword $1)),!:IL5 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-macro,$(call ^u,$n),$2,$3,$4))),$(if $(filter !:IL7,$(firstword $1)),!:IL7 $(foreach n,$(wordlist 2,99999999,$1),$(call ^d,$(call ~xlat-macro,$(call ^u,$n),$2,$3,$4))),$1))))))))
 ~expand-macro = $(call ~xlat-macro,$(call ~xlat-where,$1,$5),0,$(call ~num-,$(words $(subst .,. ,$(subst :$2,,:$3))),1),$4)
 ~check-optional-args = $(if $1,$(if $(filter ...% ?%,$(call ~symbol-name,$(call ^u,$(word 1,$1)))),$(call ~check-optional-args,$(wordlist 2,99999999,$1),1),$(if $2,$(call ~gen-error,$(call ^u,$(word 1,$1)),non-optional parameter after optional one),$(call ~check-optional-args,$(wordlist 2,99999999,$1),))))
-~c0-local = $(and $(if $(and $(findstring U,$(SCAM_DEBUG)),$(if $(findstring $2,$1),,1)),$(call ~compile-warn,$3,reference to upvalue %q,$(call ~symbol-name,$3)))1,!:IL4 $(subst .,,$1) $(words $(subst .,. ,$(subst $1,,$2$(subst .,,$1)))))
+~c0-local = $(and $(if $(and $(~*warn-upvals*),$(if $(findstring $2,$1),,1)),$(call ~compile-warn,$3,reference to upvalue %q,$(call ~symbol-name,$3)))1,!:IL4 $(subst .,,$1) $(words $(subst .,. ,$(subst $1,,$2$(subst .,,$1)))))
 ~c0-ctor = $(call ~c0-lambda,$1,$(foreach i,$(call ~indices-a,$(words $3)),$(call ^d,!:P2 0 $(call ^d,a$(call ^u,$i)))),$(call ^d,!:P0 0 $(call ~cons,$2,$(foreach i,$(call ~indices-a,$(words $3)),$(call ^d,!:P2 0 $(call ^d,a$(call ^u,$i)))))))
 ~c0-macro = $(call ~xlat-arg,!:IL8 $(call ^d,$(wordlist 2,99999999,$2)),$(call ^u,$(word 1,$2)),$(call ~current-depth,$1))
 ~c0-builtin = !:IL8 $(call ^d,$(if $(firstword $(filter 3 2 1,$3)),!:IL2 $2 $(foreach n,$(wordlist 1,$(firstword $(filter 3 2 1,$3)),1 2 3),$(call ^d,!:IL4 $(call ^u,$n) 0)),!:IL3 ^apply $(call ^d,!:IL0 $(call ^d,$2)) $(call ^d,!:IL1 ^av)))
@@ -337,7 +379,7 @@ $(call ^require,num)
 ~c0-vec = $(foreach f,$1,$(call ^d,$(call ~c0,$(call ^u,$f),$2)))
 ~c0-call = $(or $(call ~check-argc,$5,$3,$2),$(if $6,$(call ~expand-macro,$(wordlist 2,99999999,$6),$(call ^u,$(word 1,$6)),$(call ~current-depth,$1),$(foreach a,$3,$(call ^d,$(call ~c0,$(call ^u,$a),$1,))),$(call ~form-index,$2)),!:IL3 $(call ^d,$4) $(call ~c0-vec,$3,$1)))
 ~c0-record = $(or $(call ~check-argc,$(words $4),$3,$2),!:IL6 $(call ~cons,!:IL0 $(call ^d,$5),$(foreach n,$(call ~indices-a,$(words $4)),$(call ~append,$(call ^d,!:IL0 !0),$(call ^d,$(if $(filter S,$(word $n,$4)),$(call ~il-demote,$(call ~c0,$(call ~nth,$n,$3),$1)),$(call ~c0,$(call ~nth,$n,$3),$1)))))))
-~c0-L = $(if $(filter !:EDefn1,$(firstword $5)),$(call ~c0-call,$1,$3,$4,$(call ^n,2,$5),$(call ^n,4,$5),$(wordlist 5,99999999,$5)),$(if $(filter !:EDefn5,$(firstword $5)),$(or $(call ~check-argc,$(call ^n,4,$5),$4,$3),!:IL2 $(call ^n,2,$5) $(call ~c0-vec,$4,$1)),$(if $(filter !:EDefn3,$(firstword $5)),$(if $(call ~eq?,$(word 3,$5),x),$(call ~gen-error,$3,cannot use xmacro in its own file),$(call ~c0,$(call $(call ^n,2,$5),$4),$1,$6)),$(if $(filter !:EDefn4,$(firstword $5)),$(call ~c0-record,$1,$3,$4,$(call ^n,2,$5),$(call ^n,4,$5)),$(if $(if $3,,1),$(call ~gen-error,$2,missing function/macro name),$(if $5,!:IL5 $(call ~c0-vec,$(call ~cons,$3,$4),$1),$(if $(if $(filter-out u%,$(flavor ~ml.special-$(call ~symbol-name,$3))),1),$(call ~ml.special-$(call ~symbol-name,$3),$1,$3,$4,$6),$(and $(if $(findstring Cu,$(SCAM_DEBUG)),$(call ~printf,env: %q,$1))1,$(call ~gen-error,$3,undefined symbol: %q,$(call ~symbol-name,$3))))))))))
+~c0-L = $(if $(filter !:EDefn1,$(firstword $5)),$(call ~c0-call,$1,$3,$4,$(call ^n,2,$5),$(call ^n,4,$5),$(wordlist 5,99999999,$5)),$(if $(filter !:EDefn5,$(firstword $5)),$(or $(call ~check-argc,$(call ^n,4,$5),$4,$3),!:IL2 $(call ^n,2,$5) $(call ~c0-vec,$4,$1)),$(if $(filter !:EDefn3,$(firstword $5)),$(if $(call ~eq?,$(word 3,$5),x),$(call ~gen-error,$3,cannot use xmacro in its own file),$(call ~c0,$(call $(call ^n,2,$5),$4),$1,$6)),$(if $(filter !:EDefn4,$(firstword $5)),$(call ~c0-record,$1,$3,$4,$(call ^n,2,$5),$(call ^n,4,$5)),$(if $(if $3,,1),$(call ~gen-error,$2,missing function/macro name),$(if $5,!:IL5 $(call ~c0-vec,$(call ~cons,$3,$4),$1),$(if $(if $(filter-out u%,$(flavor ~ml.special-$(call ~symbol-name,$3))),1),$(call ~ml.special-$(call ~symbol-name,$3),$1,$3,$4,$6),$(call ~gen-error,$3,undefined symbol: %q,$(call ~symbol-name,$3)))))))))
 ~lambda-env-arg9 = $(foreach n,$(call ~indices-a,$(words $1)),$(foreach name,$(call ~symbol-name,$(call ~nth,$n,$1)),$(if $(filter ...%,$(name)),$(call ^k,$(or $(patsubst ...%,%,$(name)),$(name)))!=$(call ^d,$(if $(call ~eq?,$n,1),!:EDefn6 $29,!:EDefn2 $(call ^d,$2) - !:IL2 wordlist $(call ^d,!:IL0 $(call ^d,$n)) $(call ^d,!:IL0 999999) $(call ^d,!:IL4 9 0))),$(call ^k,$(patsubst ?%,%,$(name)))!=$(call ^d,!:EDefn2 $(call ^d,$2) - !:IL2 call $(call ^d,!:IL0 ^n) $(call ^d,!:IL0 $(call ^d,$n)) $(call ^d,!:IL4 9 0)))))
 ~lambda-env-args = $(call ~append,:!=$(call ^d,!:EDefn7 $2),$(foreach n,$(call ~indices-a,$(words $(wordlist 1,8,$1))),$(foreach name,$(call ~symbol-name,$(call ~nth,$n,$1)),$(if $(filter ...%,$(name)),$(call ^k,$(or $(patsubst ...%,%,$(name)),$(name)))!=$(call ^d,!:EDefn2 !. - !:IL2 foreach $(call ^d,!:IL0 N) $(call ^d,!:IL0 $(call ^d,$n)) $(call ^d,!:IL1 ^v)),$(call ^k,$(patsubst ?%,%,$(name)))!=$(call ^d,!:EDefn6 $2$n)))),$(if $(word 9,$1),$(call ~lambda-env-arg9,$(wordlist 9,99999999,$1),$2)))
 ~c0-lambda = $(or $(call ~check-optional-args,$2),!:IL8 $(call ^d,$(call ~c0-block,$3,$(call ~append,$(call ~lambda-env-args,$2,.$(call ~current-depth,$1)),$1))))
@@ -347,14 +389,14 @@ $(call ^require,num)
 ~il-errors = $(if $(filter !:P8,$(firstword $1)),$(call ^d,$1),$(if $(filter !:IL2,$(firstword $1)),$(filter %,$(foreach node,$(wordlist 3,99999999,$1),$(call ~il-errors,$(call ^u,$(node))))),$(if $(filter !:IL3,$(firstword $1)),$(filter %,$(foreach node,$(wordlist 3,99999999,$1),$(call ~il-errors,$(call ^u,$(node))))),$(if $(filter !:IL5,$(firstword $1)),$(filter %,$(foreach node,$(wordlist 2,99999999,$1),$(call ~il-errors,$(call ^u,$(node))))),$(if $(filter !:IL6,$(firstword $1)),$(filter %,$(foreach node,$(wordlist 2,99999999,$1),$(call ~il-errors,$(call ^u,$(node))))),$(if $(filter !:IL7,$(firstword $1)),$(filter %,$(foreach node,$(wordlist 2,99999999,$1),$(call ~il-errors,$(call ^u,$(node))))),$(if $(filter !:IL8,$(firstword $1)),$(call ~il-errors,$(call ^n,2,$1)))))))))
 ~il-error-node = $(call ^Y,$(call ~il-errors,$1),,,,,,,,,$`(if $`1,$`(if $`(word 2,$`1),!:IL7 $`1,$`(call ^u,$`(word 1,$`1)))))
 ~check-name = $(if $(filter $1,$(~builtin-names)),$(call ~gen-error,$2,cannot redefine built-in function %q,$1),$(if $(filter @ : < ? ^ + | *,$(subst %,:,$1)),$(call ~gen-error,$2,cannot redefine automatic variable '$`%s',$1)))
-~c0-def-symbol = $(or $(if $(filter &inline,$4),$(call ~gen-error,$2,'&inline' does not apply to symbol definitions)),$(call ~c0-check-body,$2,$(call ^u,$(word 1,$5)),$6),$(if $(if $7,,1),$(call ~check-name,$3,$2)),$(call ^Y,$(call ~c0-block,$5,$1),$(if $(filter &public,$4),x,p),$(call ~gen-global-name,$3,$4),$1,,,,,,$`(or $`(call ~il-error-node,$`1),!:IL10 $`(call ^d,$`(call ~append,$`(call ^k,$(call ^E,$3))!=$`(call ^d,$`(if $(call ^E,$7),!:EDefn2 $`(call ^d,$`(call ~current-depth,$`4)) $`2 $`1,!:EDefn0 $`(call ^d,$`3) $`2)),$`4)) $`(and $(call ^E,$6),$`(if $(call ^E,$7),,1),!:IL3 ^set $`(call ^d,!:IL0 $`(call ^d,$`3)) $`(call ^d,$`1)))))
+~c0-def-symbol = $(or $(if $(filter &inline,$4),$(call ~gen-error,$2,'&inline' does not apply to symbol definitions)),$(call ~c0-check-body,$2,$(call ^u,$(word 1,$5)),$6),$(if $(if $7,,1),$(call ~check-name,$3,$2)),$(call ^Y,$(call ~c0-block,$5,$1),$(if $(filter &public,$4),x,p),$(call ~gen-global-name,$3,$4),$1,,,,,,$`(or $`(call ~il-error-node,$`1),!:IL11 $`(call ^d,$`(call ~append,$`(call ^k,$(call ^E,$3))!=$`(call ^d,$`(if $(call ^E,$7),!:EDefn2 $`(call ^d,$`(call ~current-depth,$`4)) $`2 $`1,!:EDefn0 $`(call ^d,$`3) $`2)),$`4)) $`(and $(call ^E,$6),$`(if $(call ^E,$7),,1),!:IL3 ^set $`(call ^d,!:IL0 $`(call ^d,$`3)) $`(call ^d,$`1)))))
 ~get-argc = $(if $(filter ...% ?%,$(lastword $1)),$(if $(filter ...%,$(lastword $1)),$(words $(filter-out ...% ?%,$1)) or more,$(call ~get-argc,$(call ~butlast,$1)) or $(words $1)),$(words $1))
-~c0-def-compound = $(or $(call ~c0-check-body,$2,$(call ^u,$(word 1,$6)),$7),$(if $(or $8,$(filter &inline,$5)),$(call ^u,$(word 1,$(filter-out !.,$(foreach a,$4,$(call ^d,$(if $(filter ...%,$(call ~symbol-name,$(call ^u,$a))),$(call ~gen-error,$(call ^u,$a),%s cannot have rest (...) parameters,$(if $8,macros,inline functions))))))))),$(if $(if $8,,1),$(call ~check-name,$3,$2)),$(call ^Y,$(call ~c0-lambda,$(if $8,$1,$(call ~append,$(call ^k,$3)!=$(call ^d,!:EDefn1 $(call ^d,$(call ~gen-global-name,$3,$5)) $(if $(filter &public,$5),x,p) $(call ^d,$(call ~get-argc,$(foreach a,$4,$(call ^d,$(call ~symbol-name,$(call ^u,$a)))))) ),$1)),$4,$6),$1,,,,,,,,$`(or $`(call ~il-error-node,$`1),!:IL10 $`(call ^d,$`(call ~append,$`(call ^k,$(call ^E,$3))!=$`(call ^d,!:EDefn1 $`(call ^d,$`(if $(call ^E,$8),:,$`(call ~gen-global-name,$(call ^E,$3),$(call ^E,$5)))) $`(if $`(filter &public,$(call ^E,$5)),x,p) $`(call ^d,$`(call ~get-argc,$`(foreach a,$(call ^E,$4),$`(call ^d,$`(call ~symbol-name,$`(call ^u,$`a)))))) $`(if $`(or $(call ^E,$8),$`(filter &inline,$(call ^E,$5))),$`(call ~cons,$`(call ~current-depth,$`2),$`(if $`(filter !:IL8,$`(firstword $`1)),$`(call ^n,2,$`1))))),$`2)) $`(and $(call ^E,$7),$`(if $(call ^E,$8),,1),!:IL3 ^fset $`(call ^d,!:IL0 $`(call ^d,$`(call ~gen-global-name,$(call ^E,$3),$(call ^E,$5)))) $`(call ^d,$`1)))))
+~c0-def-compound = $(or $(call ~c0-check-body,$2,$(call ^u,$(word 1,$6)),$7),$(if $(or $8,$(filter &inline,$5)),$(call ^u,$(word 1,$(filter-out !.,$(foreach a,$4,$(call ^d,$(if $(filter ...%,$(call ~symbol-name,$(call ^u,$a))),$(call ~gen-error,$(call ^u,$a),%s cannot have rest (...) parameters,$(if $8,macros,inline functions))))))))),$(if $(if $8,,1),$(call ~check-name,$3,$2)),$(call ^Y,$(call ~c0-lambda,$(if $8,$1,$(call ~append,$(call ^k,$3)!=$(call ^d,!:EDefn1 $(call ^d,$(call ~gen-global-name,$3,$5)) $(if $(filter &public,$5),x,p) $(call ^d,$(call ~get-argc,$(foreach a,$4,$(call ^d,$(call ~symbol-name,$(call ^u,$a)))))) ),$1)),$4,$6),$1,,,,,,,,$`(or $`(call ~il-error-node,$`1),!:IL11 $`(call ^d,$`(call ~append,$`(call ^k,$(call ^E,$3))!=$`(call ^d,!:EDefn1 $`(call ^d,$`(if $(call ^E,$8),:,$`(call ~gen-global-name,$(call ^E,$3),$(call ^E,$5)))) $`(if $`(filter &public,$(call ^E,$5)),x,p) $`(call ^d,$`(call ~get-argc,$`(foreach a,$(call ^E,$4),$`(call ^d,$`(call ~symbol-name,$`(call ^u,$`a)))))) $`(if $`(or $(call ^E,$8),$`(filter &inline,$(call ^E,$5))),$`(call ~cons,$`(call ~current-depth,$`2),$`(if $`(filter !:IL8,$`(firstword $`1)),$`(call ^n,2,$`1))))),$`2)) $`(and $(call ^E,$7),$`(if $(call ^E,$8),,1),!:IL3 ^fset $`(call ^d,!:IL0 $`(call ^d,$`(call ~gen-global-name,$(call ^E,$3),$(call ^E,$5)))) $`(call ^d,$`1)))))
 ~c0-def2 = $(or $(if $(if $7,,1),$(if $(filter !:P5,$(firstword $3)),$(call ~c0-def2,$1,$(word 2,$3),$(wordlist 3,99999999,$3),$4,$5,$6,1))),$(if $(filter !:P2,$(firstword $3)),$(call ~c0-def-symbol,$1,$(word 2,$3),$(call ^n,3,$3),$4,$5,$6,$7),$(if $(filter !:P0,$(firstword $3)),$(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$(wordlist 3,99999999,$3))))),$(call ~c0-def-compound,$1,$(word 2,$3),$(call ^n,3,$(call ^u,$(word 1,$(wordlist 3,99999999,$3)))),$(wordlist 2,99999999,$(wordlist 3,99999999,$3)),$4,$5,$6,$7),$(call ~err-expected,S,$(call ^u,$(word 1,$(wordlist 3,99999999,$3))),$3,NAME,(%s %s(NAME...)),$(if $6,define,declare),$(if $7,`))),$(call ~err-expected,L S,$3,$2,FORM,(%s %sFORM ...),$(if $6,define,declare),$(if $7,`)))))
 ~ml.special-define = $(call ~env-strip,$4,$(call ~c0-def2,$1,$(call ~form-index,$2),$(call ^u,$(word 1,$3)),$(call ~get-flags,$3,1),$(call ~skip-flags,$3,1),1,))
 ~ml.special-declare = $(call ~env-strip,$4,$(call ~c0-def2,$1,$(call ~form-index,$2),$(call ^u,$(word 1,$3)),$(call ~get-flags,$3,1),$(call ~skip-flags,$3,1),,))
-~ml.special-require = $(or $(if $(call ~skip-flags,$3,1),$(call ~gen-error,$(call ~skip-flags,$3,1),too many arguments to require)),$(if $(filter !:P1,$(firstword $(call ^u,$(word 1,$3)))),$(call ^Y,$(call ~get-module-env,$(call ^n,3,$(call ^u,$(word 1,$3))),$(filter &private,$(call ~get-flags,$3,1))),$(call ^u,$(word 1,$3)),$1,$(call ^n,3,$(call ^u,$(word 1,$3))),$4,,,,,$`(if $`1,$`(if $`5,!:IL10 $`(call ^d,$`(call ~append,$`1,$`3)) !:IL3 ^require $`(call ^d,!:IL0 $`(call ^d,$`(notdir $`4))),!:IL3 ^require $`(call ^d,!:IL0 $`(call ^d,$`(notdir $`4)))),$`(call ~gen-error,$`2,require: Cannot find module %q,$`4))),$(call ~err-expected,S,$(call ^u,$(word 1,$3)),$2,STRING,(require STRING))))
-~c0-block-cc = $(if $(filter !:IL10,$(firstword $5)),$(call ~c0-block-cc,$(call ^n,2,$5),$2,$3,$4,$(wordlist 3,99999999,$5)),$(if $(if $2,,1),$(call ^Y,$1,$(filter-out !:IL0 !.,$(call ~append,$4,$(if $5,$(call ^d,$5)))),,,,,,,,$3),$(call ~c0-block-cc,$1,$(wordlist 2,99999999,$2),$3,$(call ~append,$4,$(if $5,$(call ^d,$5))),$(call ~c0,$(call ^u,$(word 1,$2)),$1,1))))
+~ml.special-require = $(or $(if $(call ~skip-flags,$3,1),$(call ~gen-error,$(call ~skip-flags,$3,1),too many arguments to require)),$(if $(filter !:P1,$(firstword $(call ^u,$(word 1,$3)))),$(call ^Y,$(call ~locate-module,$(~*compile-file*),$(call ^n,3,$(call ^u,$(word 1,$3)))),$(call ^u,$(word 1,$3)),$1,$(call ^n,3,$(call ^u,$(word 1,$3))),$4,$(filter &private,$(call ~get-flags,$3,1)),,,,$`(or $`(if $`(if $`1,,1),$`(call ~gen-error,$`2,require: Cannot find %q,$`4)),$`(if $`(if $`(call ~module-has-binary?,$`1),,1),$`(and $`(or $`(~*is-quiet*),$`(info ... compiling $`1))1,$`(if $`(call ~compile-module,$`1,$`(call ~modid-file,$`(call ~module-id,$`1)),),$`(call ~gen-error,$`2,require: compilation of %q failed,$`1),$`(call ^set,~*file-mods*,$`(call ~append,$`(~*file-mods*),$`(call ~module-id,$`1)))))),$`(if $`5,!:IL11 $`(call ^d,$`(call ~append,$`(call ~env-import,$`1,$`6),$`3)) !:IL7 $`(call ^d,!:IL3 ^require $`(call ^d,!:IL0 $`(call ^d,$`(call ~module-id,$`1)))) $`(call ^d,!:IL10 require $`(call ^d,$`1)),!:IL7 $`(call ^d,!:IL3 ^require $`(call ^d,!:IL0 $`(call ^d,$`(call ~module-id,$`1)))) $`(call ^d,!:IL10 require $`(call ^d,$`1))))),$(call ~err-expected,S,$(call ^u,$(word 1,$3)),$2,STRING,(require STRING))))
+~c0-block-cc = $(if $(filter !:IL11,$(firstword $5)),$(call ~c0-block-cc,$(call ^n,2,$5),$2,$3,$4,$(wordlist 3,99999999,$5)),$(if $(if $2,,1),$(call ^Y,$1,$(filter-out !:IL0 !.,$(call ~append,$4,$(if $5,$(call ^d,$5)))),,,,,,,,$3),$(call ~c0-block-cc,$1,$(wordlist 2,99999999,$2),$3,$(call ~append,$4,$(if $5,$(call ^d,$5))),$(call ~c0,$(call ^u,$(word 1,$2)),$1,1))))
 ~c0-block = $(call ~c0-block-cc,$2,$1,$`(if $`(word 2,$`2),!:IL7 $`2,$`(or $`(call ^u,$`(word 1,$`2)),!:IL0 !.)))
 ~ml.special-begin = $(call ~c0-block,$3,$1)
 ~c0-dict-key = $(call ^Y,$(call ~il-demote,$(call ~c0,$1,$2)),,,,,,,,,$`(or $`(if $`(filter !:IL3,$`(firstword $`1)),$`(if $`(call ~eq?,$`(call ^n,2,$`1),^d),!:IL3 ^k $`(wordlist 3,99999999,$`1))),$`(call ~il-subst,%,!8,$`1)))
@@ -362,32 +404,38 @@ $(call ^require,num)
 ~c0-qq-form = $(if $(findstring *!*,$1),$(call ~il-concat,$(call ~intersperse,$2,$(foreach a,$(call ~split,*!*,$1),$(call ^d,!:IL0 $a)))),$(if $(findstring *!1*,$1),$(call ~il-concat,$(call ~intersperse,$(call ~il-demote,$2),$(foreach a,$(call ~split,*!1*,$1),$(call ^d,!:IL0 $a)))),!:P8 0 $(call ^d,c0-qq-form: template='$1')))
 ~c0-qq = $(if $(filter !:P6,$(firstword $2)),$(if $3,$(call ~c0-qq-form,!:P6 $(word 2,$2) *!*,$(call ~c0-qq,$1,$(wordlist 3,99999999,$2),$(wordlist 2,99999999,$3))),$(call ~c0,$(wordlist 3,99999999,$2),$1)),$(if $(filter !:P5,$(firstword $2)),$(call ~c0-qq-form,!:P5 $(word 2,$2) *!*,$(call ~c0-qq,$1,$(wordlist 3,99999999,$2),$(call ~cons,1,$3))),$(if $(filter !:P0,$(firstword $2)),$(call ~c0-qq-form,!:P0 $(word 2,$2) *!*,$(call ~il-concat,$(call ~intersperse,!:IL0 !0,$(foreach c,$(wordlist 3,99999999,$2),$(call ^d,$(if $(filter !:P7,$(firstword $(call ^u,$c))),$(call ~c0,$(wordlist 3,99999999,$(call ^u,$c)),$1),$(call ~il-demote,$(call ~c0-qq,$1,$(call ^u,$c),$3)))))))),$(if $(filter !:P8,$(firstword $2)),$2,!:IL0 $(call ^d,$2)))))
 ~c0-error = $(call ~gen-error,$1,$(if $(filter !:P6,$(firstword $1)),unquote (,) outside of a quasiquoted (`) form,$(if $(filter !:P7,$(firstword $1)),splice (,@) outside of a quasiquoted (`) form,bad AST node: %q)),$1)
-~c0 = $(and $(if $(findstring c0,$(SCAM_DEBUG)),$(and $(call ~printf,form: %q,$1)1,$(if $(findstring c0e,$(SCAM_DEBUG)),$(call ~printf,env: %q,$2))))1,$(if $(filter !:P2,$(firstword $1)),$(call ~c0-S,$2,$1,$(call ^n,3,$1),$(call ~resolve,$1,$2)),$(if $(filter !:P1,$(firstword $1)),!:IL0 $(call ^d,$(call ^n,3,$1)),$(if $(filter !:P0,$(firstword $1)),$(call ~c0-L,$2,$(word 2,$1),$(call ^u,$(word 1,$(wordlist 3,99999999,$1))),$(wordlist 2,99999999,$(wordlist 3,99999999,$1)),$(call ~resolve,$(call ^u,$(word 1,$(wordlist 3,99999999,$1))),$2),$3),$(if $(filter !:P3,$(firstword $1)),$(call ~c0-D,$2,$(word 2,$1),$(wordlist 3,99999999,$1)),$(if $(filter !:P4,$(firstword $1)),!:IL0 $(call ^d,$(wordlist 3,99999999,$1)),$(if $(filter !:P5,$(firstword $1)),$(call ~c0-qq,$2,$(wordlist 3,99999999,$1)),$(if $(filter !:P8,$(firstword $1)),$1,$(call ~c0-error,$1)))))))))
+~c0 = $(if $(filter !:P2,$(firstword $1)),$(call ~c0-S,$2,$1,$(call ^n,3,$1),$(call ~resolve,$1,$2)),$(if $(filter !:P1,$(firstword $1)),!:IL0 $(call ^d,$(call ^n,3,$1)),$(if $(filter !:P0,$(firstword $1)),$(call ~c0-L,$2,$(word 2,$1),$(call ^u,$(word 1,$(wordlist 3,99999999,$1))),$(wordlist 2,99999999,$(wordlist 3,99999999,$1)),$(call ~resolve,$(call ^u,$(word 1,$(wordlist 3,99999999,$1))),$2),$3),$(if $(filter !:P3,$(firstword $1)),$(call ~c0-D,$2,$(word 2,$1),$(wordlist 3,99999999,$1)),$(if $(filter !:P4,$(firstword $1)),!:IL0 $(call ^d,$(wordlist 3,99999999,$1)),$(if $(filter !:P5,$(firstword $1)),$(call ~c0-qq,$2,$(wordlist 3,99999999,$1)),$(if $(filter !:P8,$(firstword $1)),$1,$(call ~c0-error,$1))))))))
 
 endef
  
-define ///gen1.min
+define [mod-'gen1]
 # compiled from gen1.scm
-# Requires: core escape parse gen runtime
-# Requires: scam-ct
-# Exports: gen1_2 c1-file+c1-file*+c1-file-fset)2 c1-file-set)2 c1-file+c1+c1-Var+c1-Block+c1-Funcall+c1-Local)2 make-list)3 c1-Call)2 c1-args9+c1-Builtin)2 il-vector+c1-Error+c1-vec)3 c1-arg-trim+c1-arg+is-balanced?&p;1;\.;\<;if`<]filter],1'|@>],1<|firstword|@[}1}0`']1`<]if],1<|filter|@'}@1:IL1|@<}firstword}@1[@01@00],1'|1],1<|if|@<}filter}@1'@0@11<}@1<@0firstword@0@11[@101@100|@'}1|@<}if}@1<@0filter@0@11'@10@{:IL5@0@11<@10firstword@10@{[@1101@1100}@1'@01 c1+one-char-names#2;\.;p;\';a]b]c]d]e]f]g]h]i]j]k]l]m]n]o]p]q]r]s]t]u]v]w]x]y]z]A]B]C]D]E]F]G]H]I]J]K]L]M]N]O]P]Q]R]S]T]U]V]W]X]Y]Z]!T voidify&p;1;\.;\<;if`<]if],1<|filter|@'}@1<|@<}firstword}@1[@01@00],1<|filter|@'}error@0eval@0info|@<}word}@1'@02}@1[@01@00],1<|if|@<}filter}@1'@0@11>}@1<@0firstword@0@11[@101@100|@<}filter}@1'@0^require}@1>@0^n@0@11'@102@0@11[@101@100`[]1]0`:IL6],1'|@<],1'|}],1'|if],1'|}],1:IL6|@>}^d}@1[@01@00|@'}@0|@>}^d}@1:IL6@0@11'@10@{'@0@11'@10@110@0@11'@10@{. gen-extract+gen-embed+gen-decode&p;1;\.;\<;subst`']~1`']~`<]subst],1'|~L],1'|!Q],1<|subst|@'}~C|@'}!C|@<}subst}@1'@0~R}@1'@0!R}@1<@0subst@0@11'@10~S@0@11'@10$@0@11<@10subst@10@{'@110~N@10@{'@110!n@10@{[@1101@1100 gen-encode&p;1;\.;\<;subst`']!n`']~N`<]subst],1'|$],1'|~S],1<|subst|@'}!R|@'}~R|@<}subst}@1'@0!C}@1'@0~C}@1<@0subst@0@11'@10!Q@0@11'@10~L@0@11<@10subst@10@{'@110~@10@{'@110~1@10@{[@1101@1100 c1-Lambda)1
-$(call ^require,core)
-$(call ^require,escape)
-$(call ^require,parse)
-$(call ^require,gen)
+# Requires: 'core 'escape 'parse 'gen 'runtime
+# Uses: 'scam-ct
+# Exports: gen1_2 c1-file+c1-file*+c1-file-fset)2 c1-file-set)2 c1-file+c1+c1-Var+c1-Block+c1-Funcall+c1-Local)2 make-list)3 c1-Call)2 c1-args9+c1-Builtin)2 il-vector+c1-Error+c1-vec)3 c1-arg-trim+c1-arg+is-balanced?&p;1;\.;\<;if`<]filter],1'|@>],1<|firstword|@[}1}0`']1`<]if],1<|filter|@'}@1:IL1|@<}firstword}@1[@01@00],1'|1],1<|if|@<}filter}@1'@0@11<}@1<@0firstword@0@11[@101@100|@'}1|@<}if}@1<@0filter@0@11'@10@{:IL5@0@11<@10firstword@10@{[@1101@1100}@1'@01 c1+one-char-names#2;\.;p;\';a]b]c]d]e]f]g]h]i]j]k]l]m]n]o]p]q]r]s]t]u]v]w]x]y]z]A]B]C]D]E]F]G]H]I]J]K]L]M]N]O]P]Q]R]S]T]U]V]W]X]Y]Z]!T voidify&p;1;\.;\<;if`<]if],1<|filter|@'}@1<|@<}firstword}@1[@01@00],1<|filter|@'}error@0eval@0info|@<}word}@1'@02}@1[@01@00],1<|if|@<}filter}@1'@0@11>}@1<@0firstword@0@11[@101@100|@<}filter}@1'@0^require}@1>@0^n@0@11'@102@0@11[@101@100|@<}if}@1<@0filter@0@11'@10@{:IL10@0@11<@10firstword@10@{[@1101@1100}@1'@01`[]1]0`:IL6],1'|@<],1'|}],1'|if],1'|}],1:IL6|@>}^d}@1[@01@00|@'}@0|@>}^d}@1:IL6@0@11'@10@{'@0@11'@10@110@0@11'@10@{. crumb-extract+crumb)2 crumb-decode+crumb-encode+c1-Lambda)1
+$(call ^require,'core)
+
+$(call ^require,'escape)
+
+$(call ^require,'parse)
+
+$(call ^require,'gen)
+
 ~c1-Lambda = $(subst $``.,$`.,$(subst $``-,$`,$(subst $`,$``,$1)))
-define ~gen-embed
-$`.{$(subst 
-,~N,$(subst $`,~S,$(subst $],~R,$(subst $(if ,,,),~C,$(subst $[,~L,$(subst ~,~1,$1))))))$`.}
+define ~crumb-encode
+$(subst 
+,~N,$(subst $`,~S,$(subst $],~R,$(subst $(if ,,,),~C,$(subst $[,~L,$(subst ~,~1,$1))))))
 endef
-define ~gen-extract
-$(if $(findstring $`.{,$1),$(foreach e,$(wordlist 2,99999999,$(call ~split,$`.{,$1)),$(call ^d,$(subst ~1,~,$(subst ~L,$[,$(subst ~C,$(if ,,,),$(subst ~R,$],$(subst ~S,$`,$(subst ~N,
-,$(call ^u,$(word 1,$(call ~split,$`.},$(call ^u,$e)))))))))))))
+define ~crumb-decode
+$(subst ~1,~,$(subst ~L,$[,$(subst ~C,$(if ,,,),$(subst ~R,$],$(subst ~S,$`,$(subst ~N,
+,$1))))))
 endef
+~crumb = $`.{$(call ~crumb-encode,$(call ^k,$1)!=$(call ^d,$2))$`.}
+~crumb-extract = $(call ^Y,$(subst $`.}, ,$(subst $`.{, $`.{,$(call ^d,$1))),,,,,,,,,$`(call ~append,code!=$`(call ^d,$`(call ~concat-vec,$`(filter-out $``.{%,$`1))),$`(call ~dict-collate,$`(foreach w,$`(patsubst $``.{%,%,$`(filter $``.{%,$`1)),$`(call ~crumb-decode,$`(call ~promote,$`w))))))
 ~c1-arg = $(if $(if $(filter !:IL3,$(firstword $1)),1,$(if $(filter !:IL1,$(firstword $1)),1,$(if $(filter !:IL2,$(firstword $1)),1,$(if $(filter !:IL5,$(firstword $1)),1)))),$(call ~c1,$1),$(call ~protect-arg,$(call ~c1,$1)))
 ~c1-arg-trim = $(if $(if $(filter !:IL3,$(firstword $1)),1,$(if $(filter !:IL1,$(firstword $1)),1,$(if $(filter !:IL2,$(firstword $1)),1,$(if $(filter !:IL5,$(firstword $1)),1)))),$(call ~c1,$1),$(call ~protect-trim,$(call ~protect-arg,$(call ~c1,$1))))
 ~c1-vec = $(subst |1,|,$(subst |0, ,$(subst $  ,$(subst |,|1,$2),$(foreach a,$1,$(subst $  ,|0,$(subst |,|1,$(call $3,$(call ^u,$a))))))))
-~c1-Error = $(call ~gen-embed,$(if $(filter !:P8,$(firstword $1)),$1,!:P8 0 $(call ^d,internal:bad IL: $1)))
+~c1-Error = $(call ~crumb,errors,$(if $(filter !:P8,$(firstword $1)),$1,!:P8 0 $(call ^d,internal:bad IL: $1)))
 ~il-vector = $(call ~il-concat,$(subst $  , $(call ^d,!:IL0 !0) ,$(foreach n,$1,$(call ^d,$(call ~il-demote,$(call ^u,$n))))))
 ~c1-Builtin = $`($1 $(call ~protect-ltrim,$(call ~c1-vec,$2,$(if ,,,),$(if $(filter and or,$1),~c1-arg-trim,~c1-arg))))
 ~c1-args9 = $(if $(word 9,$1),$(if ,,$(call ~c1-vec,$(wordlist 1,8,$1),$(if ,,,),~c1-arg),$(call ~protect-arg,$(call ~c1,$(call ~il-vector,$(wordlist 9,99999999,$1))))),$(call ~c1-vec,$1,$(if ,,,),~c1-arg))
@@ -397,7 +445,7 @@ endef
 ~c1-Funcall = $`(call ^Y,$(call ~c1-args9,$(wordlist 2,99999999,$1))$(subst $  ,,$(or $(wordlist $(words x$(wordlist 2,99999999,$1)),9,$(if ,,, , , , , , , , ,)),$(if ,,,)))$(call ~protect-arg,$(call ~c1,$(call ^u,$(word 1,$1)))))
 ~c1-Block = $(if $(word 2,$1),$`(and $(call ~c1-vec,$1,$(if ,,1,),~c1-arg)),$(if $1,$(call ~c1,$(call ^u,$(word 1,$1)))))
 ~c1-Var = $`$(or $(filter a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z _,$1),($(subst $`,$``,$1)))
-~c1 = $(if $(filter !:IL0,$(firstword $1)),$(subst $`,$``,$(call ^n,2,$1)),$(if $(filter !:IL4,$(firstword $1)),$(call ~c1-Local,$(word 2,$1),$(word 3,$1)),$(if $(filter !:IL3,$(firstword $1)),$(call ~c1-Call,$(call ^n,2,$1),$(wordlist 3,99999999,$1)),$(if $(filter !:IL1,$(firstword $1)),$(call ~c1-Var,$(call ^n,2,$1)),$(if $(filter !:IL6,$(firstword $1)),$(call ~c1-vec,$(wordlist 2,99999999,$1),,~c1),$(if $(filter !:IL8,$(firstword $1)),$(call ~c1-Lambda,$(call ~c1,$(call ^n,2,$1))),$(if $(filter !:IL7,$(firstword $1)),$(call ~c1-Block,$(wordlist 2,99999999,$1)),$(if $(filter !:IL5,$(firstword $1)),$(call ~c1-Funcall,$(wordlist 2,99999999,$1)),$(if $(filter !:IL2,$(firstword $1)),$(call ~c1-Builtin,$(word 2,$1),$(wordlist 3,99999999,$1)),$(if $(filter !:IL9,$(firstword $1)),$(subst $`,$``,$(call ^n,2,$1)),$(call ~c1-Error,$1)))))))))))
+~c1 = $(if $(filter !:IL0,$(firstword $1)),$(subst $`,$``,$(call ^n,2,$1)),$(if $(filter !:IL4,$(firstword $1)),$(call ~c1-Local,$(word 2,$1),$(word 3,$1)),$(if $(filter !:IL3,$(firstword $1)),$(call ~c1-Call,$(call ^n,2,$1),$(wordlist 3,99999999,$1)),$(if $(filter !:IL1,$(firstword $1)),$(call ~c1-Var,$(call ^n,2,$1)),$(if $(filter !:IL6,$(firstword $1)),$(call ~c1-vec,$(wordlist 2,99999999,$1),,~c1),$(if $(filter !:IL8,$(firstword $1)),$(call ~c1-Lambda,$(call ~c1,$(call ^n,2,$1))),$(if $(filter !:IL7,$(firstword $1)),$(call ~c1-Block,$(wordlist 2,99999999,$1)),$(if $(filter !:IL5,$(firstword $1)),$(call ~c1-Funcall,$(wordlist 2,99999999,$1)),$(if $(filter !:IL2,$(firstword $1)),$(call ~c1-Builtin,$(word 2,$1),$(wordlist 3,99999999,$1)),$(if $(filter !:IL9,$(firstword $1)),$(subst $`,$``,$(call ^n,2,$1)),$(if $(filter !:IL10,$(firstword $1)),$(call ~crumb,$(word 2,$1),$(call ^n,3,$1)),$(call ~c1-Error,$1))))))))))))
 define ~c1-file-set
 $(call ~protect-lhs,$1) := $(call ~protect-rhs,$2)
 
@@ -414,65 +462,90 @@ endef
 ~c1-file* = $(subst |1,|,$(subst |0, ,$(subst $  ,,$(foreach node,$1,$(subst $  ,|0,$(subst |,|1,$(call ~c1-file,$(call ^u,$(node)))))))))
 define ~c1-file
 $(or $(if $(filter !:IL2,$(firstword $1)),$(if $(filter !:IL0,$(firstword $(call ^u,$(word 1,$(wordlist 3,99999999,$1))))),$(if $(filter eval,$(word 2,$1)),$(call ^n,2,$(call ^u,$(word 1,$(wordlist 3,99999999,$1))))
-,$(if $(filter call,$(word 2,$1)),$(call ~c1-file,!:IL3 $(call ^d,$(call ^n,2,$(call ^u,$(word 1,$(wordlist 3,99999999,$1))))) $(wordlist 2,99999999,$(wordlist 3,99999999,$1)))))),$(if $(filter !:IL3,$(firstword $1)),$(if $(if $(filter-out $(call ^d,!:IL0 !.),$(word 3,$(wordlist 3,99999999,$1))),,1),$(if $(filter ^set,$(call ^n,2,$1)),$(call ~c1-file-set,$(call ~c1,$(call ~nth,1,$(wordlist 3,99999999,$1))),$(call ~c1,$(call ~nth,2,$(wordlist 3,99999999,$1)))),$(if $(filter ^fset,$(call ^n,2,$1)),$(call ~c1-file-fset,$(call ~c1,$(call ~nth,1,$(wordlist 3,99999999,$1))),$(call ~c1,$(call ~nth,2,$(wordlist 3,99999999,$1))))))),$(if $(filter !:IL7,$(firstword $1)),$(call ~c1-file*,$(wordlist 2,99999999,$1))))),$(if ,,$(call ~protect-expr,$(call ~c1,$(if $(if $(filter !:IL2,$(firstword $1)),$(filter error eval info,$(word 2,$1)),$(if $(filter !:IL3,$(firstword $1)),$(filter ^require,$(call ^n,2,$1)))),$1,!:IL2 if $(call ^d,$1) $(call ^d,!:IL0 !.))))
+,$(if $(filter call,$(word 2,$1)),$(call ~c1-file,!:IL3 $(call ^d,$(call ^n,2,$(call ^u,$(word 1,$(wordlist 3,99999999,$1))))) $(wordlist 2,99999999,$(wordlist 3,99999999,$1)))))),$(if $(filter !:IL3,$(firstword $1)),$(if $(if $(filter-out $(call ^d,!:IL0 !.),$(word 3,$(wordlist 3,99999999,$1))),,1),$(if $(filter ^set,$(call ^n,2,$1)),$(call ~c1-file-set,$(call ~c1,$(call ~nth,1,$(wordlist 3,99999999,$1))),$(call ~c1,$(call ~nth,2,$(wordlist 3,99999999,$1)))),$(if $(filter ^fset,$(call ^n,2,$1)),$(call ~c1-file-fset,$(call ~c1,$(call ~nth,1,$(wordlist 3,99999999,$1))),$(call ~c1,$(call ~nth,2,$(wordlist 3,99999999,$1))))))),$(if $(filter !:IL7,$(firstword $1)),$(call ~c1-file*,$(wordlist 2,99999999,$1))))),$(if ,,$(call ~protect-expr,$(call ~c1,$(if $(if $(filter !:IL2,$(firstword $1)),$(filter error eval info,$(word 2,$1)),$(if $(filter !:IL3,$(firstword $1)),$(filter ^require,$(call ^n,2,$1)),$(if $(filter !:IL10,$(firstword $1)),1))),$1,!:IL2 if $(call ^d,$1) $(call ^d,!:IL0 !.))))
 ))
 endef
-~gen1 = $(call ^Y,$(if $2,$(call ~c1-file*,$1),$(call ~c1,!:IL7 $1)),,,,,,,,,$`(call ^d,$`(call ~gen-extract,$`1)) $`(call ^d,$`1))
+~gen1 = $(call ~crumb-extract,$(if $2,$(call ~c1-file*,$1),$(call ~c1,!:IL7 $1)))
 
 endef
  
-define ///getopts.min
+define [mod-'getopts]
 # compiled from getopts.scm
-# Requires: core runtime
-# Requires: scam-ct
-# Exports: getopts_3 getopts-loop)7
-$(call ^require,core)
-~getopts-loop = $(and $(call ^set,~opt,$(word 1,$5))1,$(call ^set,~file,$(call ~nth,1,$5))1,$(if $(if $5,,1),$(call ^d,$6) $(call ^d,$7),$(if $(if $(filter -%,$(~opt)),,1),$(call ~getopts-loop,$1,$2,$3,$4,$(wordlist 2,99999999,$5),$(call ~conj,$6,$(~file)),$7),$(if $(filter $1,$(~opt)),$(call ~getopts-loop,$1,$2,$3,$4,$(wordlist 2,99999999,$5),$6,$(call ~append,$(call ^k,$(patsubst -%,%,$(patsubst -%,%,$(~opt))))!=$(call ^d,1),$7)),$(if $(filter $2,$(~opt)),$(call ~getopts-loop,$1,$2,$3,$4,$(wordlist 3,99999999,$5),$6,$(call ~append,$(call ^k,$(patsubst -%,%,$(patsubst -%,%,$(~opt))))!=$(call ^d,$(call ~nth,2,$5)),$7)),$(if $(filter $3,$(~opt)),$(call ~getopts-loop,$1,$2,$3,$4,,$6,$(call ~append,$(call ^k,$(patsubst -%,%,$(patsubst -%,%,$(~opt))))!=$(call ^d,$(wordlist 2,99999999,$5)),$7)),$(call ^Y,$(~opt),$(wordlist 2,99999999,$5),,,,,,,,$4)))))))
-~getopts = $(call ~getopts-loop,$(filter-out %= %=...,$2),$(patsubst %=,%,$(filter %=,$2)),$(patsubst %=...,%,$(filter %=...,$2)),$3,$1,,)
+# Requires: 'core 'runtime
+# Uses: 'scam-ct
+# Exports: getopts_2 getopts-loop)3]or]4 opt-pair)2 MissingArg#4;S;x`:GetoptsError0 BadOption#4;S;x`:GetoptsError1
+$(call ^require,'core)
+
+$(if $(call ^add-tags,!1:GetoptsError0!=MissingArg!0S !1:GetoptsError1!=BadOption!0S),)
+~opt-pair = $(call ^k,$(patsubst -%,%,$(patsubst -%,%,$1)))!=$(call ^d,$2)
+~getopts-loop = $(if $(if $(word 1,$3),,1),$4,$(if $(filter --,$(word 1,$3)),$(call ~append,$4,$(foreach w,$(wordlist 2,99999999,$3),*!=$(call ^d,$(call ~promote,$w)))),$(if $(filter $1,$(word 1,$3)),$(call ~getopts-loop,$1,$2,$(wordlist $(or 2,2),99999999,$3),$(call ~append,$4,$(call ~opt-pair,$(word 1,$3),1))),$(if $(filter $2,$(word 1,$3)),$(if $(word 2,$3),$(call ~getopts-loop,$1,$2,$(wordlist $(or 3,2),99999999,$3),$(call ~append,$4,$(call ~opt-pair,$(word 1,$3),$(call ~nth,2,$3)))),$(call ~append,$4,!1!=$(call ^d,!:GetoptsError0 $(call ^d,$(word 1,$3))))),$(if $(filter -%,$(word 1,$3)),$(call ~getopts-loop,$1,$2,$(wordlist $(or 2,2),99999999,$3),$(call ~append,$4,!1!=$(call ^d,!:GetoptsError1 $(call ^d,$(word 1,$3))))),$(call ~getopts-loop,$1,$2,$(wordlist $(or 2,2),99999999,$3),$(call ~append,$4,*!=$(call ^d,$(call ~promote,$(word 1,$3))))))))))
+~getopts = $(call ~dict-collate,$(call ~getopts-loop,$(filter-out %=,$2),$(patsubst %=,%,$(filter %=,$2)),$1))
 
 endef
  
-define ///io.min
+define [mod-'io]
 # compiled from io.scm
-# Requires: core runtime
-# Requires: scam-ct
-# Exports: file-exists?_1 read-lines_1]or]2]or]3 read-file_1 write-file_2 getline_1 shell\#1;~%1;x;1 printn_0]or]more echo-command_1 quote-sh-arg_1 shellc)0]or]more logshell&p;1;\.;\:IL7`<]if],1<|filter|@'}S|@:IL1}SCAM!TDEBUG],1<|info|@:IL6}@1'@0shell:@10}@1[@01@00`<]shell],1[|1|0 SCAM!TDEBUG#0;%;p
-$(call ^require,core)
-~shellc = $(and $(if $(filter S,$(SCAM_DEBUG)),$(info shell: $(call ~concat-vec,$(foreach N,1,$(^v)))))1,$(shell $(call ~concat-vec,$(foreach N,1,$(^v)))))
+# Requires: 'core 'runtime
+# Uses: 'scam-ct
+# Exports: unescape-path_1 escape-path_1 resolve-path_2 clean-path_1 clean-path-x)1]or]2 mkdir-p_1 file-exists?_1 read-file_1 read-lines_1]or]2]or]3 write-file_2 concat-groups)2 getline_1 fprintf_2]or]more write_2 echo-command_1 shell\#1;~%1;x;1 unwrap-text+wrap-filter&p;0]or]1]or]2;\.;\:IL6`']sed|-e|!E`<]if],1[|1|0],1:IL6|@[}1}0|@'}!C|@[}2}0|@'}@1d!A`']s/,1/@/g!As/|/}/g!As/,!S/,1!S/g!As/^$/,1./!E quote-sh-file_1 quote-sh-arg_1 logshell+SCAM!TDEBUG#0;%;p
+$(call ^require,'core)
+
+~logshell = $(and $(if $(filter S,$(SCAM_DEBUG)),$(info shell: $1))1,$(shell $1))
 ~quote-sh-arg = '$(subst ','\'',$1)'
+~quote-sh-file = $(call ~quote-sh-arg,$(if $(filter -%,$(call ^d,$1)),./)$1)
+define ~unwrap-text
+$(if $1,$(call ~concat-vec,$1,
+)
+)
+endef
+~shell! = $(call ~unwrap-text,$(call ~logshell,( $1 ) | sed -e '$(if ,$(if ,,,!d;))s/!/!1/g;s/ /!0/g;s/	/!+/g;s/^$`/!./'))
 define ~echo-command
 printf '%b' $(call ~quote-sh-arg,$(subst 
 ,\n,$(subst \,\\,$1)))
 endef
-~printn = $(call ~shellc,$(call ~echo-command,$(call ~concat-vec,$(foreach N,1,$(^v)))), >&2)
-define ~shell!
-$(subst !1,!,$(subst !0, ,$(subst !n,
-,$(subst $  ,,$(and $(if $(filter S,$(SCAM_DEBUG)),$(info shell: $1 | sed -e 's/!/!1/g;s/ /!0/g;s/$`/!n/g'))1,$(shell $1 | sed -e 's/!/!1/g;s/ /!0/g;s/$`/!n/g'))))))
-endef
-~getline = $(and $(if $1,$(call ~printn,$1))1,$(call ~shell!,head -1))
+~write = $(wordlist 2,99999999,$(call ~logshell,$(call ~echo-command,$2)$(if $(filter 2,$1), 3>&2 2>&1 1>&3 3>&-, 2>&1 >&$(patsubst 1,9,$1))))
+~fprintf = $(call ~write,$1,$(call ~vsprintf,$2,$(foreach N,3,$(^v))))
+~getline = $(and $(if $1,$(call ~write,1,$1))1,$(call ~shell!,head -1))
+~concat-groups = $(call ^Y,$(patsubst %,!.,$(wordlist 1,$2,$1)),$(patsubst %,!.,$1),$1,,,,,,,$`(subst !., ,$`(subst !. ,,$`(join $`3,$`(subst $`1,$`1!.,$`2)))))
 define ~write-file
-$(if $1,$(if $(if $(call ~shellc,$(call ~echo-command,), > ,$1.pre, || echo ERROR),,1),$(and $(foreach line,$(subst $  ,
- ,$(call ~split,
-,$2)),$(call ^d,$(if $(call ^u,$(line)),$(call ~shellc,$(call ~echo-command,$(call ^u,$(line))), >> ,$1.pre))))1,$(call ~shellc,mv ,$1.pre, ,$1))),$(info error: write-file: nil filename))
+$(or $(wordlist 2,99999999,$(call ~logshell,rm -f $(call ~quote-sh-file,$1) 2>&1 && 2>&1 > $(call ~quote-sh-file,$1_[tmp]))),$(and $(foreach line,$(call ~concat-groups,$(subst 
+,
+ ,$(call ^d,$2)),50),$(call ^d,$(call ~logshell,$(call ~echo-command,$(call ^u,$(line))) >> $(call ~quote-sh-file,$1_[tmp]))))1,$(wordlist 2,99999999,$(call ~logshell,mv $(call ~quote-sh-file,$1_[tmp]) $(call ~quote-sh-file,$1) 2>&1 || rm $(call ~quote-sh-file,$1_[tmp]) 2>&1))))
 endef
-~read-file = $(if $1,$(call ~shell!,cat < $(call ~quote-sh-arg,$1)),$(info error: read-file: nil filename))
-~read-lines = $(if $1,$(subst !n,,$(subst $  !n, !.,$(and $(if $(filter S,$(SCAM_DEBUG)),$(info shell: sed -E '$(if $2,$(if ,,$2,$3!d;))s/!/!1/g;s/	/!+/g;s/ /!0/g;s/$`/!n/g' $1))1,$(shell sed -E '$(if $2,$(if ,,$2,$3!d;))s/!/!1/g;s/	/!+/g;s/ /!0/g;s/$`/!n/g' $1)))),$(info error: read-lines: nil filename))
-~file-exists? = $(if $(call ~shellc,ls ,$(call ~quote-sh-arg,$1), 2> /dev/null),1)
+~read-lines = $(if $1,$(call ~logshell,sed -e '$(if $2,$(if ,,$2,$3!d;))s/!/!1/g;s/ /!0/g;s/	/!+/g;s/^$`/!./' $(call ~quote-sh-file,$1) 2>/dev/null),$(info error: read-lines: nil filename))
+~read-file = $(if $1,$(call ~unwrap-text,$(call ~read-lines,$1)),$(info error: read-file: nil filename))
+~file-exists? = $(if $(call ~logshell,[[ -f $(call ~quote-sh-file,$1) ]] && echo t),$1)
+~mkdir-p = $(call ~logshell,mkdir -p $(call ~quote-sh-file,$1))
+~clean-path-x = $(if $1,$(filter ..,$(word 1,$1)$(word 1,$2)) $(call ~clean-path-x,$(wordlist 2,99999999,$1),$(subst /, ,$(filter-out %/..,$2/$(word 1,$1)))),$2)
+~clean-path = $(call ~promote,$(patsubst /./,/,$(if $(filter /%,$1),/)$(or $(subst $  ,/,$(filter %,$(call ~clean-path-x,$(filter-out .,$(subst /, ,$(call ^d,$1)))))),.)$(if $(filter %/,$1),/)))
+~resolve-path = $(call ~clean-path,$(if $(filter /%,$2),$2,$1/$2))
+define ~escape-path
+$(patsubst /%,+/%,$(subst /..,/+.,$(subst 
+,+_,$(subst $ 	,+-,$(subst |,+V,$(subst ?,+Q,$(subst *,+A,$(subst ~,+T,$(subst %,+P,$(subst =,+E,$(subst ;,+S,$(subst :,+C,$(subst $`,+D,$(subst \,+B,$(subst #,+H,$(subst !,+1,$(subst $  ,+0,$(subst +,+2,$1))))))))))))))))))
+endef
+define ~unescape-path
+$(subst +2,+,$(subst +0, ,$(subst +1,!,$(subst +H,#,$(subst +B,\,$(subst +D,$`,$(subst +C,:,$(subst +S,;,$(subst +E,=,$(subst +P,%,$(subst +T,~,$(subst +A,*,$(subst +Q,?,$(subst +V,|,$(subst +-,	,$(subst +_,
+,$(subst /+.,/..,$(subst +/,/,$1))))))))))))))))))
+endef
 
 endef
  
-define ///macros.min
+define [mod-'macros]
 # compiled from macros.scm
-# Requires: core parse gen gen0 runtime
-# Requires: scam-ct
+# Requires: 'core 'parse 'gen 'gen0 'runtime
+# Uses: 'scam-ct
 # Exports: ml.special-case)3 case-fold+case-append-arg)2 c0-clauses)3 arg-bindings)4 case-where#0;~%;p(data)4 read-types)3]or]4]or]5]or]6 read-type)3 read-type-r)6 data-where#0;~%;p DataType#4;W]W]S]L;p`:Data0(use)4(defmacro)4 defmacro-where#0;~%;p(global-name)3 defn-global-name)1(cond)3 cond-wrap)2 cond-where#0;~%;p(concat-for)3 il-spc-decode+il-spc-encode+concat-for-where#0;~%;p(append-for)3(for)3(foreach)3 c0-for)6(let!P)3 let!P-env)3 let!P-where#0;~%;p(let-global)3 letg-expand)4 letg-where#0;~%;p(let)3 let-where#0;~%;p read-pairs)3 read-pairs-r)3(?)3(set)3 c0-set)6(subst)3 subst-x)2(vector)3(concat)3(current-file-line)3(current-env)3(print)3
-$(call ^require,core)
-$(call ^require,parse)
-$(call ^require,gen)
-$(call ^require,gen0)
+$(call ^require,'core)
+
+$(call ^require,'parse)
+
+$(call ^require,'gen)
+
+$(call ^require,'gen0)
+
 ~ml.special-print = !:IL2 info $(call ^d,!:IL6 $(call ~c0-vec,$3,$1))
 ~ml.special-current-env = !:IL0 $(call ^d,$1)
-~ml.special-current-file-line = $(or $(call ~check-argc,0,$3,$2),!:IL9 $(call ^d,$(call ~get-file-line,$(call ~form-index,$2))))
+~ml.special-current-file-line = $(or $(call ~check-argc,0,$3,$2),!:IL9 $(call ^d,$(call ~get-where,$(call ~form-index,$2))))
 ~ml.special-concat = $(call ~il-concat,$(call ~c0-vec,$3,$1))
 ~ml.special-vector = $(call ~il-concat,$(call ~intersperse,!:IL0 !0,$(foreach f,$3,$(call ^d,$(call ~il-demote,$(call ~c0,$(call ^u,$f),$1))))))
 ~subst-x = $(if $1,$(call ~subst-x,$(wordlist 3,99999999,$1),!:IL2 subst $(call ~conj,$(wordlist 1,2,$1),$2)),$2)
@@ -499,19 +572,19 @@ $(call ^require,gen0)
 ~il-spc-decode = $(call ~il-subst,|1,|,$(call ~il-subst,|0, ,$1))
 ~ml.special-concat-for = $(or $(if $(filter !:P1,$(firstword $(call ~nth,3,$3))),$(if $(call ~eq?,$(call ^n,3,$(call ~nth,3,$3)), ),$(call ~c0-for,$1,$2,$3,$(~concat-for-where),$(value ~il-promote),$(value ~identity)))),$(call ~il-spc-decode,!:IL2 subst $(call ^d,!:IL0 !0) $(call ^d,$(call ~il-subst,|,|1,$(call ~c0,$(call ~nth,3,$3),$1))) $(call ^d,$(call ~c0-for,$1,$2,$3,$(~concat-for-where),$(value ~il-promote),$(value ~il-spc-encode)))))
 ~cond-where := (cond (TEST BODY)...)
-~cond-wrap = $(if $(filter !:P0,$(firstword $1)),$(if $(wordlist 2,99999999,$(wordlist 3,99999999,$1)),$(if $(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$(wordlist 3,99999999,$1))))),$(call ~eq?,$(call ^n,3,$(call ^u,$(word 1,$(wordlist 3,99999999,$1)))),else)),$(if $(if $2,,1),$(call ~begin-block,$(wordlist 2,99999999,$(wordlist 3,99999999,$1))),$(call ~gen-error,$(call ^u,$(word 1,$(wordlist 3,99999999,$1))),(else ...) is followed by additional clauses)),!:P0 0 $(call ~append,$(call ^d,!:P2 0 if) $(word 1,$(wordlist 3,99999999,$1)) $(call ^d,$(call ~begin-block,$(wordlist 2,99999999,$(wordlist 3,99999999,$1)))),$(if $2,$(call ^d,$2)))),$(if $(call ^u,$(word 1,$(wordlist 3,99999999,$1))),$(call ~err-expected,,$(wordlist 2,99999999,$(wordlist 3,99999999,$1)),$(wordlist 3,99999999,$1),BODY,$(~cond-where)),$(call ~err-expected,,$(wordlist 2,99999999,$(wordlist 3,99999999,$1)),$(wordlist 3,99999999,$1),TEST,$(~cond-where)))),$(call ~err-expected,L,$1,,(TEST BODY),$(~cond-where)))
+~cond-wrap = $(if $(filter !:P0,$(firstword $1)),$(if $(wordlist 2,99999999,$(wordlist 3,99999999,$1)),$(if $(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$(wordlist 3,99999999,$1))))),$(call ~eq?,$(call ^n,3,$(call ^u,$(word 1,$(wordlist 3,99999999,$1)))),else)),$(if $(if $2,,1),$(call ~begin-block,$(wordlist 2,99999999,$(wordlist 3,99999999,$1))),$(call ~gen-error,$(call ^u,$(word 1,$(wordlist 3,99999999,$1))),(else ...) is followed by additional clauses)),!:P0 0 $(call ~append,$(call ^d,!:P2 0 if) $(word 1,$(wordlist 3,99999999,$1)) $(call ^d,$(call ~begin-block,$(wordlist 2,99999999,$(wordlist 3,99999999,$1)))),$(if $2,$(call ^d,$2)))),$(if $(call ^u,$(word 1,$(wordlist 3,99999999,$1))),$(call ~err-expected,,,$1,BODY,$(~cond-where)),$(call ~err-expected,,,$1,TEST,$(~cond-where)))),$(call ~err-expected,L,$1,,(TEST BODY),$(~cond-where)))
 ~ml.special-cond = $(call ~c0,$(call ~foldr,$(value ~cond-wrap),,$3),$1)
 ~defn-global-name = $(if $(filter !:EDefn1,$(firstword $1)),$(call ^n,2,$1),$(if $(filter !:EDefn0,$(firstword $1)),$(call ^n,2,$1)))
 ~ml.special-global-name = $(or $(call ~check-argc,1,$3,$2),$(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$3)))),$(call ^Y,$(call ~defn-global-name,$(call ~resolve,$(call ^u,$(word 1,$3)),$1)),$(call ^n,3,$(call ^u,$(word 1,$3))),,,,,,,,$`(if $`1,!:IL0 $`(call ^d,$`1),$`(call ~gen-error,$`(call ^u,$`(word 1,$(call ^E,$3))),%q is not a global variable,$`2))),$(call ~err-expected,S,$(call ^u,$(word 1,$3)),$2,NAME,(global-name NAME))))
 ~defmacro-where := (defmacro (NAME ARG...) BODY)
-~ml.special-defmacro = $(if $(filter !:P0,$(firstword $(call ^u,$(word 1,$3)))),$(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$3))))))),$(call ^Y,$(call ~c0,!:P0 0 $(call ~cons,!:P2 0 define,$3),$1),$(call ~append,$(call ^k,$(call ^n,3,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$3)))))))!=$(call ^d,!:EDefn3 $(call ^d,$(call ~gen-global-name,$(call ^n,3,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$3)))))),$1)) x),$1),,,,,,,,!:IL10 $`(call ^d,$`2) $`1),$(call ~err-expected,S,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$3))))),$2,NAME,$(~defmacro-where))),$(call ~err-expected,L,$(call ^u,$(word 1,$3)),$2,(NAME ARG...),$(~defmacro-where)))
-~ml.special-use = $(or $(call ~check-argc,1,$3,$2),$(if $(filter !:P1,$(firstword $(call ^u,$(word 1,$3)))),$(call ^Y,$(call ~use-module,$(call ^n,3,$(call ^u,$(word 1,$3)))),$(call ^n,3,$(call ^u,$(word 1,$3))),$1,,,,,,,$`(if $`1,$`(if $(call ^E,$4),!:IL10 $`(call ^d,$`(call ~append,$`1,$`3)) !:IL0 !.,!:IL0 !.),$`(call ~gen-error,use: Cannot find module %q,$`2))),$(call ~err-expected,Q,$(call ^u,$(word 1,$3)),$2,MODULE,(use MODULE))))
+~ml.special-defmacro = $(if $(filter !:P0,$(firstword $(call ^u,$(word 1,$3)))),$(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$3))))))),$(call ^Y,$(call ~c0,!:P0 0 $(call ~cons,!:P2 0 define,$3),$1),$(call ~append,$(call ^k,$(call ^n,3,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$3)))))))!=$(call ^d,!:EDefn3 $(call ^d,$(call ~gen-global-name,$(call ^n,3,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$3)))))),$1)) x),$1),,,,,,,,!:IL11 $`(call ^d,$`2) $`1),$(call ~err-expected,S,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$3))))),$2,NAME,$(~defmacro-where))),$(call ~err-expected,L,$(call ^u,$(word 1,$3)),$2,(NAME ARG...),$(~defmacro-where)))
+~ml.special-use = $(or $(call ~check-argc,1,$3,$2),$(if $(filter !:P1,$(firstword $(call ^u,$(word 1,$3)))),$(call ^Y,$(call ~locate-module,$(~*compile-file*),$(call ^n,3,$(call ^u,$(word 1,$3)))),$(call ~use-module-env,$(call ^n,3,$(call ^u,$(word 1,$3)))),$(call ^n,3,$(call ^u,$(word 1,$3))),$1,,,,,,$`(if $`(filter !:EDefn7,$`(firstword $`(call ~dict-get,:E,$`2))),$`(call ~gen-error,use: module %q %s,$`3,$`(word 2,$`(call ~dict-get,:E,$`2))),$`(if $(call ^E,$4),!:IL11 $`(call ^d,$`(call ~append,$`2,$`4)) !:IL10 use $`(call ^d,$`1),!:IL10 use $`(call ^d,$`1)))),$(call ~err-expected,Q,$(call ^u,$(word 1,$3)),$2,MODULE,(use MODULE))))
 $(if $(call ^add-tags,!1:Data0!=DataType!0W!0W!0S!0L),)
 ~data-where := (data NAME (CTOR ARG...)...)
 ~read-type-r = $(or $(if $(if $1,,1),$(if $6,$(call ~gen-error,$2,no argument following last flag: %s,$6),!:Data0 $3 $(call ^u,$(word 1,$4)) $(call ^d,$(wordlist 2,99999999,$4)) $5)),$(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$1)))),$(or $(if $(if $(filter &%,$(call ^n,3,$(call ^u,$(word 1,$1)))),,1),$(call ~read-type-r,$(wordlist 2,99999999,$1),$2,$3,$4 $(if $(call ~eq?,&word,$6),W,$(if $(and $(call ~eq?,&list,$6),$(if $(word 2,$1),,1)),L,S)),$(call ~conj,$5,$(call ^n,3,$(call ^u,$(word 1,$1)))),)),$(if $6,$(call ~gen-error,$(call ^u,$(word 1,$1)),two type flags supplied for one argument)),$(if $(filter &list &word,$(call ^n,3,$(call ^u,$(word 1,$1)))),$(call ~read-type-r,$(wordlist 2,99999999,$1),$2,$3,$4,$5,$(call ^n,3,$(call ^u,$(word 1,$1))))),$(call ~gen-error,$(call ^u,$(word 1,$1)),$(if ,,unknown flag [supported: &list, &word]))),$(call ~err-expected,S,$(call ^u,$(word 1,$1)),$2,ARG,$(~data-where))))
 ~read-type = $(if $(filter !:P0,$(firstword $1)),$(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$(wordlist 3,99999999,$1))))),$(if $(filter !:P1,$(firstword $(call ~nth,2,$(wordlist 3,99999999,$1)))),$(call ~read-type-r,$(wordlist 3,99999999,$(wordlist 3,99999999,$1)),$1,$(call ^n,3,$(call ~nth,2,$(wordlist 3,99999999,$1))),$(call ^n,3,$(call ^u,$(word 1,$(wordlist 3,99999999,$1)))),,),$(call ~read-type-r,$(wordlist 2,99999999,$(wordlist 3,99999999,$1)),$1,$2,$(call ^n,3,$(call ^u,$(word 1,$(wordlist 3,99999999,$1)))),,)),$(call ~err-expected,S,$(call ^u,$(word 1,$(wordlist 3,99999999,$1))),$3,CTOR,$(~data-where))),$(call ~err-expected,L,$1,$3,(CTOR ...),$(~data-where)))
 ~read-types = $(if $(filter !:P8,$(firstword $5)),$5,$(if $(if $3,,1),$(call ~append,$6,$(if $5,$(call ^d,$5))),$(call ~read-types,$1,$2,$(wordlist 2,99999999,$3),$(call ~append,$4,1),$(call ~read-type,$(call ^u,$(word 1,$3)),$2$(words $4),$1),$(call ~append,$6,$(if $5,$(call ^d,$5))))))
-~ml.special-data = $(call ~env-strip,$4,$(call ^Y,$(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$3)))),$(call ~read-types,$2,!:$(call ^n,3,$(call ^u,$(word 1,$3))),$(call ~skip-flags,$3,1)),$(call ~err-expected,S,$(call ^u,$(word 1,$3)),$2,NAME,$(~data-where))),$(if $(filter &public,$(call ~get-flags,$3,1)),x,p),$1,,,,,,,$`(or $`(if $`(filter !:P8,$`(firstword $`1)),$`1),!:IL10 $`(call ^d,$`(call ~append,$`(filter %,$`(foreach ty,$`1,$`(if $`(filter !:Data0,$`(firstword $`(call ^u,$`(ty)))),$`(call ^k,$`(word 3,$`(call ^u,$`(ty))))!=$`(call ^d,!:EDefn4 $`(call ^d,$`(call ^n,4,$`(call ^u,$`(ty)))) $`2 $`(call ^d,$`(word 2,$`(call ^u,$`(ty)))))))),$`3)) !:IL3 ^add-tags $`(call ^d,!:IL0 $`(call ^d,$`(filter %,$`(foreach ty,$`1,$`(if $`(filter !:Data0,$`(firstword $`(call ^u,$`(ty)))),$`(call ^k,$`(word 2,$`(call ^u,$`(ty))))!=$`(call ^d,$`(call ~append,$`(word 3,$`(call ^u,$`(ty))),$`(call ^n,4,$`(call ^u,$`(ty)))))))))))))
+~ml.special-data = $(call ~env-strip,$4,$(call ^Y,$(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$3)))),$(call ~read-types,$2,!:$(call ^n,3,$(call ^u,$(word 1,$3))),$(call ~skip-flags,$3,1)),$(call ~err-expected,S,$(call ^u,$(word 1,$3)),$2,NAME,$(~data-where))),$(if $(filter &public,$(call ~get-flags,$3,1)),x,p),$1,,,,,,,$`(or $`(if $`(filter !:P8,$`(firstword $`1)),$`1),!:IL11 $`(call ^d,$`(call ~append,$`(filter %,$`(foreach ty,$`1,$`(if $`(filter !:Data0,$`(firstword $`(call ^u,$`(ty)))),$`(call ^k,$`(word 3,$`(call ^u,$`(ty))))!=$`(call ^d,!:EDefn4 $`(call ^d,$`(call ^n,4,$`(call ^u,$`(ty)))) $`2 $`(call ^d,$`(word 2,$`(call ^u,$`(ty)))))))),$`3)) !:IL3 ^add-tags $`(call ^d,!:IL0 $`(call ^d,$`(filter %,$`(foreach ty,$`1,$`(if $`(filter !:Data0,$`(firstword $`(call ^u,$`(ty)))),$`(call ^k,$`(word 2,$`(call ^u,$`(ty))))!=$`(call ^d,$`(call ~append,$`(word 3,$`(call ^u,$`(ty))),$`(call ^n,4,$`(call ^u,$`(ty)))))))))))))
 ~case-where := (case VALUE (PATTERN BODY)...)
 ~arg-bindings = $(foreach n,$(call ~indices-a,$(words $2)),$(call ^k,$(call ~symbol-name,$(call ~nth,$n,$1)))!=$(call ^d,!:EDefn2 $(call ^d,$4) - $(if $(call ~eq?,S,$(word $n,$2)),!:IL3 ^n $(call ^d,!:IL0 $(call ^d,$(call ~1+,$n))) $(call ^d,$3),$(if $(call ~eq?,W,$(word $n,$2)),!:IL2 word $(call ^d,!:IL0 $(call ^d,$(call ~1+,$n))) $(call ^d,$3),!:IL2 wordlist $(call ^d,!:IL0 $(call ^d,$(call ~1+,$n))) $(call ^d,!:IL0 99999999) $(call ^d,$3)))))
 ~c0-clauses = $(foreach c,$1,$(call ^d,$(if $(filter !:P0,$(firstword $(call ^u,$c))),$(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c)))))),$(call ~c0-block,$(wordlist 2,99999999,$(wordlist 3,99999999,$(call ^u,$c))),$(call ~append,$(call ^k,$(call ^n,3,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c))))))!=$(call ^d,!:EDefn2 $(call ^d,$(call ~current-depth,$3)) - $2),$3)),$(if $(filter !:P0,$(firstword $(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c)))))),$(or $(call ^Y,$(call ~resolve,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c))))))),$3),$2,$(wordlist 2,99999999,$(wordlist 3,99999999,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c)))))),$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c))))))),$(wordlist 2,99999999,$(wordlist 3,99999999,$(call ^u,$c))),,,,,$`(if $`(filter !:EDefn4,$`(firstword $`1)),$`(or $`(call ~check-argc,$`(words $`(call ^n,2,$`1)),$`3,$`4),!:IL2 if $`(call ^d,!:IL2 filter $`(call ^d,!:IL0 $`(call ^d,$`(call ^n,4,$`1))) $`(call ^d,!:IL2 firstword $`(call ^d,$`2))) $`(call ^d,$`(call ~c0-block,$`5,$`(call ~append,$`(call ~arg-bindings,$`3,$`(call ^n,2,$`1),$`2,$`(call ~current-depth,$(call ^E,$3))),$(call ^E,$3))))))),$(if $(filter !:P2,$(firstword $(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c))))))))),$(call ~gen-error,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c))))))),symbol %q does not identify a record type,$(call ^n,3,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c))))))))),$(call ~err-expected,S,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c))))))),$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c)))),CTOR,$(~case-where)))),$(call ~err-expected,L S,$(call ^u,$(word 1,$(wordlist 3,99999999,$(call ^u,$c)))),$(call ^u,$c),PATTERN,$(~case-where)))),$(call ~err-expected,L,$(call ^u,$c),,(PATTERN BODY),$(~case-where)))))
@@ -521,12 +594,13 @@ $(if $(call ^add-tags,!1:Data0!=DataType!0W!0W!0S!0L),)
 
 endef
  
-define ///num.min
+define [mod-'num]
 # compiled from num.scm
-# Requires: core runtime
-# Requires: scam-ct
-# Exports: num-format_2]or]3]or]4 pad-and-sign)3 f-enc-norm+range_2 i-range)2 sum_1 susum-loop)3 fsum-loop)2 min_2 max_2 \=&x;2;\.;\<;if`>]~num-cmp],1[|1|0],1[|2|0`']1 =&x;2;\.;\<;if`>]~num-cmp],1[|1|0],1[|2|0`'],.`']1 !F=&x;2;\.;\<;filter`']1`<]or],1>|~num-cmp|@[}2}0|@[}1}0],1'|1 !G=&x;2;\.;\<;filter`']1`<]or],1>|~num-cmp|@[}1}0|@[}2}0],1'|1 !F&x;2;\.;\<;filter`']1`>]~num-cmp],1[|2|0],1[|1|0 !G&x;2;\.;\<;filter`']1`>]~num-cmp],1[|1|0],1[|2|0 mod&x;2;\.;\>;~i-%`[]1]0`[]2]0 ^&x;2;\.;\>;~num%`[]1]0`[]2]0 /&x;2]or]3;\.;\>;~f-dec`>]~f%],1>|~f-enc|@[}1}0],1>|~f-enc|@[}2}0],1[|3|0 *&x;2;\.;\>;~num%`[]1]0`[]2]0 -&x;2;\.;\>;~num%`[]1]0`[]2]0 !S&x;2;\.;\>;~num%`[]1]0`[]2]0 num^_2 num-cmp)2 num*)2 num-)2 num!S)2 fnum-cmp&p;2;\.;\>;~f-cmp`>]~f-enc],1[|1|0`>]~f-enc],1[|2|0 fnum/&p;3;\.;\>;~f-dec`>]~f/],1>|~f-enc|@[}1}0],1>|~f-enc|@[}2}0],1[|3|0 fnum*&p;2;\.;\>;~f-dec`>]~f*],1>|~f-enc|@[}1}0],1>|~f-enc|@[}2}0 fnum-&p;2;\.;\>;~f-dec`>]~f!S],1>|~f-enc|@[}1}0],1>|~f-enc|@<}subst}@1'@0--}@1'@0@1.}@1:IL6@0@11'@10-@0@11<@10subst@10@{'@110!S@10@{'@110@{.@10@{[@1102@1100 fnum!S&p;2;\.;\>;~f-dec`>]~f!S],1>|~f-enc|@[}1}0],1>|~f-enc|@[}2}0 f-cmp)2 f/)3 f-div3)7 f*)2 f!S)2 f-dec+f-dec3)3 f-enc+float?&p;1;\.;\<;findstring`'].`<]subst],1'|e],1'|.],1<|subst|@'}E|@'}e|@[}1}0 f-negate+f-minus&p;1;\.;\<;filter`']-`<]word],1'|2],1[|1|0 f-nonzero?&p;1;\.;\<;findstring`']i`[]1]0 f-mul&p;1;\.;\<;wordlist`']3`']99999999`[]1]0 f-sign&p;1;\.;\<;word`']2`[]1]0 f-exp&p;1;\.;\<;word`']1`[]1]0 f-ctor&p;3;\.;\:IL6`[]1]0`']|`[]2]0`']|`[]3]0 i-mod)2 u-mod)2 u-mod-loop)4 u-mod-loop)3 u-div)2 u-divx)4 u-divx-loop)6 u-div1)2 tick-div&p;2;\.;\<;subst`']x`']i`<]subst],1'|i],1'|,1.],1<|subst|@[}2}0|@'}x|@[}1}0 ticks+i!G&p;2;\.;\<;filter`']1`>]~i-cmp],1[|1|0],1[|2|0 i*)2 i-&p;2;\.;\>;~i!S`[]1]0`<]subst],1'|--],1'|,1.],1:IL6|@'}-|@<}subst}@1'@0!S}@1'@0@1.}@1[@02@00 i!S_2 su!S&p;4;\.;\<;subst`']-|-|`'],.`:IL6],1<|if|@[}1}0|@'}-@0],1<|if|@>}~xor}@1[@01@00}@1[@03@00|@>}~su-sub}@1[@02@00}@1[@04@00|@>}~u-carry-loop}@1<@0subst@0@11'@10iiiiiiiiii@110:@0@11'@10@110:i@0@11:IL6@10@{<@110subst@110@{1'@{0::@110@{1'@{0:@110@{1<@{0subst@{0@{11'@{10i:@{0@{11'@{10i@{0@{11<@{10join@{10@{{[@{1102@{1100@{10@{{[@{1104@{1100@10@{'@110@{0: i-cmp)2 i-norm&p;1;\.;\<;or`<]addprefix],1<|findstring|@'}-|@[}1}0],1<|subst|@'}@0|@'}@.|@<}wordlist}@1'@02}@1'@099999999}@1<@0subst@0@11'@10@1100@0@11'@100@0@11<@10subst@10@{'@1100@10@{'@1100@{0@10@{:IL6@110@{1'@{00@110@{1<@{0subst@{0@{11'@{10!S@{0@{11'@{10@{11.@{0@{11<@{10subst@{10@{{'@{110-@{10@{{'@{110@{{.@{10@{{[@{1101@{1100`']0 su-sub)2 su-dec+su-enc+i-odd?&p;1;\.;\<;filter`']!p1|!p3|!p5|!p7|!p9`[]1]0 i-neg?&p;1;\.;\<;and`<]findstring],1'|-],1[|1|0`<]subst],1'|0],1'|,1.],1<|subst|@'}-|@'}@.|@[}1}0`']- i-nonzero?&p;1;\.;\<;subst`']0`'],.`<]subst],1'|-],1'|,1.],1[|1|0 i-minus&p;1;\.;\<;findstring`']-`[]1]0 u^)2 u^2+u/2+u-negate+u-extend-ms)2 u!F&p;2;\.;\<;filter`']2`>]~u-cmp],1[|1|0],1[|2|0 u-cmp)2 u*)2 mul-carry&p;1;\.;\>;~u-carry-loop`<]subst],1'|iiiiiiiiii}:],1'|}:i],1<|subst|@'}iiiiiiiiii@0:|@'}@0:i|@<}subst}@1'@0iiiiiiiiiiiiiiiiiiii@10:}@1'@0@10:ii}@1<@0subst@0@11'@10iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii@110:@0@11'@10@110:iiii@0@11:IL6@10@{[@1101@1100@10@{'@110@{0: u!S)2;\.;\>;~u-carry-loop`<]subst],1'|iiiiiiiiii}:],1'|}:i],1:IL6|@<}subst}@1'@0::}@1'@0:}@1<@0subst@0@11'@10i:@0@11'@10i@0@11<@10join@10@{[@1101@1100@10@{[@1102@1100|@'}@0: raw-add&p;2;\.;\<;subst`']::`']:`<]subst],1'|i:],1'|i],1<|join|@[}1}0|@[}2}0 u-carry&p;1;\.;\>;~%-loop`<]subst],1'|iiiiiiiiii}:],1'|}:i],1[|1|0 u-carry-loop+u-dec/10^n)2 u-norm+u-dec-norm+u-dec+u-enc+numreverse+u-odd?&p;1;\.;\<;findstring`']i`<]subst],1'|ii],1'|,1.],1<|word|@'}1|@[}1}0 u-zero?&p;1;\.;\<;if`<]findstring],1'|i],1[|1|0`'],.`']1 u-nonzero?&p;1;\.;\<;findstring`']i`[]1]0 digits-to-unary&p;1;\.;\<;subst`']0`']|:`<]subst],1'|1],1'|0i],1<|subst|@'}2|@'}1i|@<}subst}@1'@03}@1'@02i}@1<@0subst@0@11'@104@0@11'@103i@0@11<@10subst@10@{'@1105@10@{'@1104i@10@{<@110subst@110@{1'@{06@110@{1'@{05i@110@{1<@{0subst@{0@{11'@{107@{0@{11'@{106i@{0@{11<@{10subst@{10@{{'@{1108@{10@{{'@{1107i@{10@{{<@{110subst@{110@{{1'@{{09@{110@{{1'@{{08i@{110@{{1[@{{01@{{00 unary-to-digits&p;1;\.;\<;subst`']8i`']9`<]subst],1'|7i],1'|8],1<|subst|@'}6i|@'}7|@<}subst}@1'@05i}@1'@06}@1<@0subst@0@11'@104i@0@11'@105@0@11<@10subst@10@{'@1103i@10@{'@1104@10@{<@110subst@110@{1'@{02i@110@{1'@{03@110@{1<@{0subst@{0@{11'@{101i@{0@{11'@{102@{0@{11<@{10subst@{10@{{'@{1100i@{10@{{'@{1101@{10@{{<@{110subst@{110@{{1'@{{0:@{110@{{1'@{{00@{110@{{1[@{{01@{{00 tail)2 0-&x;1;\.;\<;subst`'\%-`'],.`:IL6],1',%],1<|subst|@'}!S|@'}@.|@[}1}0 abs&x;1;\.;\<;patsubst`']-!p`']!p`<]subst],1'|!S],1'|,1.],1[|1|0 nzeros&p;1;\.;\<;subst`']|`'],.`>]~nwords-loop],1[|1|0],1:IL6|@'}0|@'}@0|@'}0|@'}@0|@'}0 nwords&p;2;\.;\>;~%-loop`[]1]0`:IL6],1[|2|0],1'|}],1[|2|0],1'|}],1[|2|0 nwords-loop)2
-$(call ^require,core)
+# Requires: 'core 'runtime
+# Uses: 'scam-ct
+# Exports: num-format_2]or]3]or]4 pad-and-sign)3 f-enc-norm+range_2 i-range)2 sum_1 susum-loop)3 fsum-loop)2 min_2 max_2 \=&x;2;\.;\<;if`>]~num-cmp],1[|1|0],1[|2|0`']1 =&x;2;\.;\<;if`>]~num-cmp],1[|1|0],1[|2|0`'],.`']1 !F=&x;2;\.;\<;filter`']1`<]or],1>|~num-cmp|@[}2}0|@[}1}0],1'|1 !G=&x;2;\.;\<;filter`']1`<]or],1>|~num-cmp|@[}1}0|@[}2}0],1'|1 !F&x;2;\.;\<;filter`']1`>]~num-cmp],1[|2|0],1[|1|0 !G&x;2;\.;\<;filter`']1`>]~num-cmp],1[|1|0],1[|2|0 mod&x;2;\.;\>;~i-%`[]1]0`[]2]0 ^&x;2;\.;\>;~num%`[]1]0`[]2]0 /&x;2]or]3;\.;\>;~f-dec`>]~f%],1>|~f-enc|@[}1}0],1>|~f-enc|@[}2}0],1[|3|0 *&x;2;\.;\>;~num%`[]1]0`[]2]0 -&x;2;\.;\>;~num%`[]1]0`[]2]0 !S&x;2;\.;\>;~num%`[]1]0`[]2]0 num^_2 num-cmp)2 num*)2 num-)2 num!S)2 fnum-cmp&p;2;\.;\>;~f-cmp`>]~f-enc],1[|1|0`>]~f-enc],1[|2|0 fnum/&p;3;\.;\>;~f-dec`>]~f/],1>|~f-enc|@[}1}0],1>|~f-enc|@[}2}0],1[|3|0 fnum*&p;2;\.;\>;~f-dec`>]~f*],1>|~f-enc|@[}1}0],1>|~f-enc|@[}2}0 fnum-&p;2;\.;\>;~f-dec`>]~f!S],1>|~f-enc|@[}1}0],1>|~f-enc|@<}subst}@1'@0--}@1'@0@1.}@1:IL6@0@11'@10-@0@11<@10subst@10@{'@110!S@10@{'@110@{.@10@{[@1102@1100 fnum!S&p;2;\.;\>;~f-dec`>]~f!S],1>|~f-enc|@[}1}0],1>|~f-enc|@[}2}0 f-cmp)2 f/)3 f-div3)7 f*)2 f!S)2 f-dec+f-dec3)3 f-enc+float?&p;1;\.;\<;findstring`'].`<]subst],1'|e],1'|.],1<|subst|@'}E|@'}e|@[}1}0 f-negate+f-minus&p;1;\.;\<;filter`']-`<]word],1'|2],1[|1|0 f-nonzero?&p;1;\.;\<;findstring`']i`[]1]0 f-mul&p;1;\.;\<;wordlist`']3`']99999999`[]1]0 f-sign&p;1;\.;\<;word`']2`[]1]0 f-exp&p;1;\.;\<;word`']1`[]1]0 f-ctor&p;3;\.;\:IL6`[]1]0`']|`[]2]0`']|`[]3]0 div-rem_2 i-mod)2 u-mod)2 u-mod-loop)4 u-mod-loop)3 u-div)2 u-divx)4 u-divx-loop)6 u-div1)2 tick-div&p;2;\.;\<;subst`']x`']i`<]subst],1'|i],1'|,1.],1<|subst|@[}2}0|@'}x|@[}1}0 ticks+i!G&p;2;\.;\<;filter`']1`>]~i-cmp],1[|1|0],1[|2|0 i*)2 i-&p;2;\.;\>;~i!S`[]1]0`<]subst],1'|--],1'|,1.],1:IL6|@'}-|@<}subst}@1'@0!S}@1'@0@1.}@1[@02@00 i!S_2 su!S&p;4;\.;\<;subst`']-|-|`'],.`:IL6],1<|if|@[}1}0|@'}-@0],1<|if|@>}~xor}@1[@01@00}@1[@03@00|@>}~su-sub}@1[@02@00}@1[@04@00|@>}~u-carry}@1:IL6@0@11<@10subst@10@{'@110::@10@{'@110:@10@{<@110subst@110@{1'@{0i:@110@{1'@{0i@110@{1<@{0join@{0@{11[@{102@{100@{0@{11[@{104@{100@0@11'@10@110: i-cmp)2 i-norm&p;1;\.;\<;or`<]addprefix],1<|findstring|@'}-|@[}1}0],1<|subst|@'}@0|@'}@.|@<}wordlist}@1'@02}@1'@099999999}@1<@0subst@0@11'@10@1100@0@11'@100@0@11<@10subst@10@{'@1100@10@{'@1100@{0@10@{:IL6@110@{1'@{00@110@{1<@{0subst@{0@{11'@{10!S@{0@{11'@{10@{11.@{0@{11<@{10subst@{10@{{'@{110-@{10@{{'@{110@{{.@{10@{{[@{1101@{1100`']0 su-sub)2 su-dec+su-enc+i-odd?&p;1;\.;\<;filter`']!p1|!p3|!p5|!p7|!p9`[]1]0 i-neg?&p;1;\.;\<;and`<]findstring],1'|-],1[|1|0`<]subst],1'|0],1'|,1.],1<|subst|@'}-|@'}@.|@[}1}0`']- i-nonzero?&p;1;\.;\<;subst`']0`'],.`<]subst],1'|-],1'|,1.],1[|1|0 i-minus&p;1;\.;\<;findstring`']-`[]1]0 u^)2 u^2+u/2+u-negate+u-extend-ms)2 u!F&p;2;\.;\<;filter`']2`>]~u-cmp],1[|1|0],1[|2|0 u-cmp)2 u*)2 mul-carry&p;1;\.;\>;~u-carry-loop`<]subst],1'|iiiiiiiiii}:],1'|}:i],1<|subst|@'}iiiiiiiiii@0:|@'}@0:i|@<}subst}@1'@0iiiiiiiiiiiiiiiiiiii@10:}@1'@0@10:ii}@1<@0subst@0@11'@10iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii@110:@0@11'@10@110:iiii@0@11:IL6@10@{[@1101@1100@10@{'@110@{0: u!S)2;\.;\>;~u-carry`:IL6],1<|subst|@'}::|@'}:|@<}subst}@1'@0i:}@1'@0i}@1<@0join@0@11[@101@100@0@11[@102@100],1'|}: raw-add&p;2;\.;\<;subst`']::`']:`<]subst],1'|i:],1'|i],1<|join|@[}1}0|@[}2}0 u-carry+u-carry-loop+u-dec/10^n)2 u-norm+u-dec-norm+u-dec+u-enc+numreverse+u-odd?&p;1;\.;\<;findstring`']i`<]subst],1'|ii],1'|,1.],1<|word|@'}1|@[}1}0 u-zero?&p;1;\.;\<;if`<]findstring],1'|i],1[|1|0`'],.`']1 u-nonzero?&p;1;\.;\<;findstring`']i`[]1]0 digits-to-unary&p;1;\.;\<;subst`']0`']|:`<]subst],1'|1],1'|0i],1<|subst|@'}2|@'}1i|@<}subst}@1'@03}@1'@02i}@1<@0subst@0@11'@104@0@11'@103i@0@11<@10subst@10@{'@1105@10@{'@1104i@10@{<@110subst@110@{1'@{06@110@{1'@{05i@110@{1<@{0subst@{0@{11'@{107@{0@{11'@{106i@{0@{11<@{10subst@{10@{{'@{1108@{10@{{'@{1107i@{10@{{<@{110subst@{110@{{1'@{{09@{110@{{1'@{{08i@{110@{{1[@{{01@{{00 unary-to-digits&p;1;\.;\<;subst`']8i`']9`<]subst],1'|7i],1'|8],1<|subst|@'}6i|@'}7|@<}subst}@1'@05i}@1'@06}@1<@0subst@0@11'@104i@0@11'@105@0@11<@10subst@10@{'@1103i@10@{'@1104@10@{<@110subst@110@{1'@{02i@110@{1'@{03@110@{1<@{0subst@{0@{11'@{101i@{0@{11'@{102@{0@{11<@{10subst@{10@{{'@{1100i@{10@{{'@{1101@{10@{{<@{110subst@{110@{{1'@{{0:@{110@{{1'@{{00@{110@{{1[@{{01@{{00 tail)2 0-&x;1;\.;\<;subst`'\%-`'],.`:IL6],1',%],1<|subst|@'}!S|@'}@.|@[}1}0 abs&x;1;\.;\<;patsubst`']-!p`']!p`<]subst],1'|!S],1'|,1.],1[|1|0 nzeros&p;1;\.;\<;subst`']|`'],.`>]~nwords-loop],1[|1|0],1:IL6|@'}0|@'}@0|@'}0|@'}@0|@'}0 nwords&p;2;\.;\>;~%-loop`[]1]0`:IL6],1[|2|0],1'|}],1[|2|0],1'|}],1[|2|0 nwords-loop)2
+$(call ^require,'core)
+
 ~nwords-loop = $(if $(subst 0,,$1),$(if $(word $1,$2),$(wordlist 1,$1,$2),$(call ~nwords-loop,$1,$2 $2 $2)))
 ~tail = $(if $(subst 0,,$1),$(if $(word $1,$2),$(wordlist $(words $(wordlist $1,99999999,$2)),99999999,$2),$2))
 ~numreverse = $(if $(word 5,$1),$(call ~reverse,$1),$(strip $(subst ~,,$(sort $(join ~~~ ~~ ~,$1)))))
@@ -536,39 +610,39 @@ $(call ^require,core)
 ~u-norm = $(strip $(subst :, :,$(filter %i,$(subst i:,i :,$(subst $  ,,$1)))))
 ~u-dec/10^n = $(patsubst %.,%,$(patsubst .%,0.%,$(subst $  ,0,$(wordlist 1,99999999,$(subst 0, ,$(call ~u-dec,$(subst .,. ,$(subst ::,:,$(join $(call ~nwords-loop,$2,: : :) .:,$1)))))))))
 ~u-carry-loop = $(if $(findstring iiiiiiiiii :,$1),$(call ~u-carry-loop,$(subst iiiiiiiiii :, :i,$1)),$1)
-~u+ = $(call ~u-carry-loop,$(subst iiiiiiiiii :, :i,$(subst ::,:,$(subst i:,i,$(join $1,$2))) :))
+~u-carry = $(call ~u-carry-loop,$(subst iiiiiiiiii :, :i,$1))
+~u+ = $(call ~u-carry,$(subst ::,:,$(subst i:,i,$(join $1,$2))) :)
 ~u* = $(call ~u-carry-loop,$(subst iiiiiiiiii :, :i,$(subst iiiiiiiiii :, :i,$(subst iiiiiiiiiiiiiiiiiiii :, :ii,$(subst iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii :, :iiii,$(subst ::,:,$(subst i:,i,$(join $(subst i,$(subst :,,$(firstword $1)),$2),$(if $(word 2,$1),$(call ~u*,$(wordlist 2,99999999,$1),: $2))))) :)))))
-~u-cmp = $(if $(or $1,$2),$(or $(call ~u-cmp,$(wordlist 2,99999999,$1),$(wordlist 2,99999999,$2)),$(if $(findstring $(word 1,$2)i,$(word 1,$1)),1),$(if $(findstring $(word 1,$1)i,$(word 1,$2)),2)))
+~u-cmp = $(lastword $(subst 2,2 ,$(subst i,1 ,$(subst :, ,$(subst i2,,$(subst ii22,,$(subst ii22,,$(subst iiii2222,,$(subst i:,i,$(join $1,$(subst i,2,$2)))))))))))
 ~u-extend-ms = $(subst ::,:,$(join $(call ~nwords-loop,$2,: : :),$1))
 ~u-negate = $(join $(foreach w,$1,:$(subst $w,,:iiiiiiiii)),i)
-~u/2 = $(call ~u-norm,$(wordlist 2,99999999,$(call ~u-carry-loop,$(subst iiiiiiiiii :, :i,$(subst i,iiiii,$1) :))))
+~u/2 = $(call ~u-norm,$(wordlist 2,99999999,$(call ~u-carry,$(subst i,iiiii,$1) :)))
 ~u^2 = $(call ~u*,$1,$1)
 ~u^ = $(if $(findstring i,$(subst ii,,$(word 1,$2))),$(call ~u-norm,$(call ~u*,$1,$(call ~u^2,$(call ~u^,$1,$(call ~u/2,$2))))),$(if $(findstring i,$2),$(call ~u-norm,$(call ~u^2,$(call ~u^,$1,$(call ~u/2,$2)))),:i))
 ~su-enc = $(call ~append,$(findstring -,$1),$(call ~u-enc,$1))
 ~su-dec = $(if $(findstring i,$1),$(filter -,$(word 1,$1)))$(call ~u-dec-norm,$(filter-out -,$1))
-~su-sub = $(call ^Y,$(call ~u-carry-loop,$(subst iiiiiiiiii :, :i,$(subst ::,:,$(subst i:,i,$(join $1,$(call ~u-negate,$(call ~u-extend-ms,$2,$(words $1)))))) :)),$(words $(join $1,$2)),,,,,,,,$`(if $`(findstring i,$`(word $`2,$`(wordlist 2,99999999,$`1))),$`(wordlist 1,$`2,$`1),- $`(wordlist 1,$`2,$`(call ~u-carry-loop,$`(subst iiiiiiiiii :, :i,$`(call ~u-negate,$`1))))))
+~su-sub = $(call ^Y,$(call ~u-carry,$(subst ::,:,$(subst i:,i,$(join $1,$(call ~u-negate,$(call ~u-extend-ms,$2,$(words $1)))))) :),$(words $(join $1,$2)),,,,,,,,$`(if $`(findstring i,$`(word $`2,$`(wordlist 2,99999999,$`1))),$`(wordlist 1,$`2,$`1),- $`(wordlist 1,$`2,$`(call ~u-carry,$`(call ~u-negate,$`1)))))
 ~i-cmp = $(call ^Y,$(findstring -,$1),$(findstring -,$2),$(call ~u-enc,$1),$(call ~u-enc,$2),,,,,,$`(if $`(call ~xor,$`1,$`2),$`(and $`(or $`(findstring i,$`3),$`(findstring i,$`4)),$`(if $`2,1,2)),$`(filter 1 2,$`(subst -1,2,$`(subst -2,1,$`1$`(call ~u-cmp,$`3,$`4))))))
-~i+ = $(call ~su-dec,$(subst - - ,,$(if $(findstring -,$1),- )$(if $(call ~xor,$(findstring -,$1),$(findstring -,$2)),$(call ~su-sub,$(call ~u-enc,$1),$(call ~u-enc,$2)),$(call ~u-carry-loop,$(subst iiiiiiiiii :, :i,$(subst ::,:,$(subst i:,i,$(join $(call ~u-enc,$1),$(call ~u-enc,$2)))) :)))))
+~i+ = $(call ~su-dec,$(subst - - ,,$(if $(findstring -,$1),- )$(if $(call ~xor,$(findstring -,$1),$(findstring -,$2)),$(call ~su-sub,$(call ~u-enc,$1),$(call ~u-enc,$2)),$(call ~u-carry,$(subst ::,:,$(subst i:,i,$(join $(call ~u-enc,$1),$(call ~u-enc,$2)))) :))))
 ~i* = $(patsubst -0,0,$(subst --,,$(findstring -,$1)$(findstring -,$2)$(call ~u-dec-norm,$(call ~u*,$(call ~u-enc,$1),$(call ~u-enc,$2)))))
 ~ticks = $(subst :,,$(word 1,$1)$(subst i,iiiiiiiiii,$(word 2,$1)$(subst i,iiiiiiiiii,$(word 3,$1))))
 ~u-div1 = $(foreach guess,:$(subst x,i,$(subst i,,$(subst $(call ~ticks,$(wordlist $(words $2),99999999,: $2))i,x,$(call ~ticks,$(wordlist $(words $2),99999999,: $1))))),$(call ^Y,$(call ~su-sub,$1,$(call ~u*,$(guess),$2)),$2,,,,,,,,$`(if $`(filter 2,$`(call ~u-cmp,$`1,$`2)),$`(guess) $`(call ~u-norm,$`1),$`(guess)i $`(call ~u-norm,$`(call ~su-sub,$`1,$`2)))))
-~u-divx-loop = $(if $(word $5,: $6),$(call ^d,$(call ~append,$(word 1,$1),$6)) $(call ^d,$(wordlist 2,99999999,$1)) $(call ^d,$(call ~append,$(call ~numreverse,$3),$2)),$(call ~u-divx-loop,$(call ~u-div1,$(or $2,:) $(wordlist 2,99999999,$1),$4),$(word 1,$3),$(wordlist 2,99999999,$3),$4,$5,$(call ~append,$(word 1,$1),$6)))
+~u-divx-loop = $(if $(word $5,: $(call ~u-norm,$6)),$(call ^d,$(call ~append,$(word 1,$1),$6)) $(call ^d,$(wordlist 2,99999999,$1)) $(call ^d,$(call ~append,$(call ~numreverse,$3),$2)),$(call ~u-divx-loop,$(call ~u-div1,$(or $2,:) $(wordlist 2,99999999,$1),$4),$(word 1,$3),$(wordlist 2,99999999,$3),$4,$5,$(call ~append,$(word 1,$1),$6)))
 ~u-divx = $(call ~u-divx-loop,$(call ~u-div1,$1,$3),$(word 1,$2),$(wordlist 2,99999999,$2),$3,$4,)
 ~u-div = $(or $(if $(if $(findstring i,$1),,1),:),$(call ^Y,$(words $(or $(wordlist 2,99999999,$(wordlist $(words $2),99999999,$(patsubst %,:,$1))),1)),$1,$2,,,,,,,$`(call ~u-divx,$`(wordlist $`1,99999999,$`2),$`(call ~numreverse,$`(wordlist 2,$`1,: $`2)),$`3,$`1)))
 ~u-mod-loop = $(if $1,$(subst $2,,$(subst :,,$(word 1,$1))$(if $3,$(subst i,$3,$(call ~u-mod-loop,$(wordlist 2,99999999,$1),$2,$3)))))
 ~u-mod-loop = $(if $(and $1,$3),$(call ~u-mod-loop,$(wordlist 2,99999999,$1),$2,$(subst $2,,$(subst i,iiiiiiiiii,$3)),$(subst $2,,$(subst i,$3,$(subst :,,$(word 1,$1)))$4)),$4)
 ~u-mod = $(words $(subst i,i ,$(if $(filter iii iiiiiiiii,$2),$(subst $2,,$(subst $  ,,$(subst :,,$1))),$(call ~u-mod-loop,$1,$2,i,))))
 ~i-mod = $(call ^Y,$(and $(findstring -,$1),$(subst 0,,$(subst -,,$1)),-),$(call ~u-norm,$(call ~u-enc,$1)),$(call ~u-norm,$(call ~u-enc,$2)),,,,,,,$`(if $`(if $`(findstring i,$`3),,1),undefined,$`1$`(if $`(word 2,$`3),$`(call ~u-dec-norm,$`(call ~nth,2,$`(call ~u-div,$`2,$`3))),$`(call ~u-mod,$`2,$`(subst :,,$`3)))))
-$(if $(call ~expect-x,1,$(call ~i-mod,1,7),num.scm:521),)
-$(if $(call ~expect-x,0,$(call ~i-mod,0,7),num.scm:522),)
+~div-rem = $(call ^Y,$(call ~u-div,$(call ~u-norm,$(call ~u-enc,$1)),$(call ~u-norm,$(call ~u-enc,$2))),,,,,,,,,$`(foreach w,$`(wordlist 1,2,$`1),$`(or $`(call ~u-dec,$`(call ~promote,$`w)),0)))
 ~f-negate = $(word 1,$1) $(if $(filter -,$(word 2,$1)),+,-) $(wordlist 3,99999999,$1)
 ~f-enc = $(if $(findstring .,$(subst e,.,$(subst E,e,$1))),$(call ^Y,$(subst +,,$(subst e, ,$(subst E, ,$1))),,,,,,,,,$`(call ~i+,$`(word 2,$`1),$`(subst --,,-$`(subst +,,$`(words $`(call ~u-enc,$`(word 3,$`(subst ., . ,0$`(word 1,$`1)))))))) $`(or $`(findstring -,$`(word 1,$`1)),+) $`(call ~u-enc,$`(subst .,,$`(word 1,$`1)))),0 $(or $(findstring -,$1),+) $(call ~u-enc,$1))
 ~f-dec3 = $(or $(if $(filter-out +,$2),$(if $(filter -,$2),$(patsubst -0,0,-$(call ~f-dec3,$1,+,$3)),undefined)),$(if $(if $3,,1),0),$(call ^Y,$(call ~i+,$1,$(words $(wordlist 2,99999999,$3))),,,,,,,,,$`(if $`(or $`(filter 1,$`(call ~i-cmp,$`1,20)),$`(filter 1,$`(call ~i-cmp,-6,$`1))),$`(call ~u-dec/10^n,$(call ^E,$3),$`(words $`(wordlist 2,99999999,$(call ^E,$3))))e$`(subst +-,-,+$`1))),$(if $(findstring -,$1),$(call ~u-dec/10^n,$3,$(patsubst -%,%,$(subst +,,$1))),$(call ~u-dec,$3)$(subst $  ,,$(call ~nwords-loop,$1,0 0 0))))
 ~f-dec = $(call ~f-dec3,$(word 1,$1),$(word 2,$1),$(call ~u-norm,$(wordlist 3,99999999,$1)))
-~f+ = $(if $(filter 1,$(call ~i-cmp,$(word 1,$1),$(word 1,$2))),$(call ~f+,$2,$1),$(call ~append,$(word 1,$1),$(subst - - ,,$(subst + -,-,+ $(subst - - ,,$(if $(filter -,$(word 2,$1)),- )$(if $(call ~xor,$(filter -,$(word 2,$1)),$(filter -,$(word 2,$2))),$(call ~su-sub,$(wordlist 3,99999999,$1),$(call ~nwords-loop,$(call ~i+,$(word 1,$2),$(subst --,,-$(subst +,,$(word 1,$1)))),: : :) $(wordlist 3,99999999,$2)),$(call ~u-carry-loop,$(subst iiiiiiiiii :, :i,$(subst ::,:,$(subst i:,i,$(join $(wordlist 3,99999999,$1),$(call ~nwords-loop,$(call ~i+,$(word 1,$2),$(subst --,,-$(subst +,,$(word 1,$1)))),: : :) $(wordlist 3,99999999,$2)))) :))))))))
+~f+ = $(if $(filter 1,$(call ~i-cmp,$(word 1,$1),$(word 1,$2))),$(call ~f+,$2,$1),$(call ~append,$(word 1,$1),$(subst - - ,,$(subst + -,-,+ $(subst - - ,,$(if $(filter -,$(word 2,$1)),- )$(if $(call ~xor,$(filter -,$(word 2,$1)),$(filter -,$(word 2,$2))),$(call ~su-sub,$(wordlist 3,99999999,$1),$(call ~nwords-loop,$(call ~i+,$(word 1,$2),$(subst --,,-$(subst +,,$(word 1,$1)))),: : :) $(wordlist 3,99999999,$2)),$(call ~u-carry,$(subst ::,:,$(subst i:,i,$(join $(wordlist 3,99999999,$1),$(call ~nwords-loop,$(call ~i+,$(word 1,$2),$(subst --,,-$(subst +,,$(word 1,$1)))),: : :) $(wordlist 3,99999999,$2)))) :)))))))
 ~f* = $(call ~i+,$(word 1,$1),$(word 1,$2)) $(if $(filter $(word 2,$1),$(word 2,$2)),+,-) $(call ~u*,$(wordlist 3,99999999,$1),$(wordlist 3,99999999,$2))
-~f-div3 = $(or $(if $(if $(findstring i,$6),,1),0 N),$(if $(if $(findstring i,$3),,1),0 + :),$(if $(filter 2,$(call ~u-cmp,$(if $(word $(words $6),$3),$(wordlist $(words $(wordlist $(words $6),99999999,$3)),99999999,$3),$(call ~append,$(wordlist $(words $3 x),99999999,$(patsubst %,:,$6)),$3)),$6)),$(call ~f-div3,$1,$2,$3,$4,$5,$(call ~append,$6,:),$7)),$(call ^Y,$(call ~u-divx,$(if $(word $(words $6),$3),$(wordlist $(words $(wordlist $(words $6),99999999,$3)),99999999,$3),$(call ~append,$(wordlist $(words $3 x),99999999,$(patsubst %,:,$6)),$3)),$(wordlist 2,99999999,$(wordlist $(words $6),99999999,$(call ~numreverse,$3))),$6,$7),,,,,,,,,$`(call ~i+,$`(call ~i+,$`(call ~i+,$`(words $(call ^E,$3)),$(call ^E,$1)),1),$`(subst --,,-$`(subst +,,$`(call ~i+,$`(call ~i+,$`(words $(call ^E,$6)),$(call ^E,$4)),$(call ^E,$7))))) $`(if $`(filter $(call ^E,$2),$(call ^E,$5)),+,-) $`(if $`(filter 1,$`(or $`(call ~u-cmp,$`(call ~u-carry-loop,$`(subst iiiiiiiiii :, :i,$`(subst ::,:,$`(subst i:,i,$`(join $`(call ~nth,2,$`1),$`(call ~nth,2,$`1)))) :)),$(call ^E,$6)),$`(if $`(findstring i,$`(call ~nth,3,$`1)),1),$`(if $`(findstring i,$`(subst ii,,$`(word 1,$`(call ^u,$`(word 1,$`1))))),1))),$`(call ~u-carry-loop,$`(join $`(call ^u,$`(word 1,$`1)),i)),$`(call ^u,$`(word 1,$`1)))))
-~f/ = $(call ~f-div3,$(word 1,$1),$(word 2,$1),$(wordlist 3,99999999,$1),$(word 1,$2),$(word 2,$2),$(wordlist 3,99999999,$2),$(or $3,16))
+~f-div3 = $(or $(if $(if $(findstring i,$6),,1),0 N),$(if $(if $(findstring i,$3),,1),0 + :),$(call ^Y,$(call ~u-divx,$(if $(word $(words $6),$3),$(wordlist $(words $(wordlist $(words $6),99999999,$3)),99999999,$3),$(call ~append,$(wordlist $(words $3 x),99999999,$(patsubst %,:,$6)),$3)),$(wordlist 2,99999999,$(wordlist $(words $6),99999999,$(call ~numreverse,$3))),$6,$7),,,,,,,,,$`(call ~i+,$`(call ~i+,$`(call ~i+,$`(words $(call ^E,$3)),$(call ^E,$1)),1),$`(subst --,,-$`(subst +,,$`(call ~i+,$`(call ~i+,$`(words $(call ^E,$6)),$(call ^E,$4)),$`(words $`(call ^u,$`(word 1,$`1))))))) $`(if $`(filter $(call ^E,$2),$(call ^E,$5)),+,-) $`(if $`(filter 1,$`(or $`(call ~u-cmp,$`(call ~u-carry,$`(subst ::,:,$`(subst i:,i,$`(join $`(call ~nth,2,$`1),$`(call ~nth,2,$`1)))) :),$(call ^E,$6)),$`(if $`(findstring i,$`(call ~nth,3,$`1)),1),$`(if $`(findstring i,$`(subst ii,,$`(word 1,$`(call ^u,$`(word 1,$`1))))),1))),$`(call ~u-carry-loop,$`(join $`(call ^u,$`(word 1,$`1)),i)),$`(call ^u,$`(word 1,$`1)))))
+~f/ = $(call ~f-div3,$(word 1,$1),$(word 2,$1),$(call ~u-norm,$(wordlist 3,99999999,$1)),$(word 1,$2),$(word 2,$2),$(call ~u-norm,$(wordlist 3,99999999,$2)),$(or $3,16))
 ~f-cmp = $(if $(filter $(word 2,$1),$(word 2,$2)),$(call ^Y,$(call ~f+,$1,$(call ~f-negate,$2)),,,,,,,,,$`(if $`(findstring i,$`1),$`(if $`(filter -,$`(word 2,$`1)),2,1),)),$(if $(or $(findstring i,$1),$(findstring i,$2)),$(if $(filter -,$(word 2,$1)),2,1)))
 ~num+ = $(if $(findstring .,$(subst e,.,$(subst E,e,$1$2))),$(call ~f-dec,$(call ~f+,$(call ~f-enc,$1),$(call ~f-enc,$2))),$(call ~i+,$1,$2))
 ~num- = $(if $(findstring .,$(subst e,.,$(subst E,e,$1$2))),$(call ~f-dec,$(call ~f+,$(call ~f-enc,$1),$(call ~f-enc,$(subst --,,-$(subst +,,$2))))),$(call ~i+,$1,$(subst --,,-$(subst +,,$2))))
@@ -578,7 +652,7 @@ $(if $(call ~expect-x,0,$(call ~i-mod,0,7),num.scm:522),)
 ~max = $(if $(filter 1,$(call ~num-cmp,$2,$1)),$2,$1)
 ~min = $(if $(filter 1,$(call ~num-cmp,$1,$2)),$2,$1)
 ~fsum-loop = $(if $2,$(call ~fsum-loop,$(call ~f+,$1,$(call ~f-enc,$(word 1,$2))),$(wordlist 2,99999999,$2)),$1)
-~susum-loop = $(if $2,$(call ~susum-loop,$(subst - - ,,$(if $(findstring -,$(word 1,$1)),- )$(if $(call ~xor,$(findstring -,$(word 1,$1)),$(findstring -,$2)),$(call ~su-sub,$(filter-out -,$1),$(call ~u-enc,$2)),$(call ~u-carry-loop,$(subst iiiiiiiiii :, :i,$(subst ::,:,$(subst i:,i,$(join $(filter-out -,$1),$(call ~u-enc,$2)))) :)))),$(word 1,$3),$(wordlist 2,99999999,$3)),$1)
+~susum-loop = $(if $2,$(call ~susum-loop,$(subst - - ,,$(if $(findstring -,$(word 1,$1)),- )$(if $(call ~xor,$(findstring -,$(word 1,$1)),$(findstring -,$2)),$(call ~su-sub,$(filter-out -,$1),$(call ~u-enc,$2)),$(call ~u-carry,$(subst ::,:,$(subst i:,i,$(join $(filter-out -,$1),$(call ~u-enc,$2)))) :))),$(word 1,$3),$(wordlist 2,99999999,$3)),$1)
 ~sum = $(if $(word 1,$1),$(if $(findstring .,$(subst e,.,$(subst E,e,$1))),$(call ~f-dec,$(call ~fsum-loop,$(call ~f-enc,$(word 1,$1)),$(wordlist 2,99999999,$1))),$(call ~su-dec,$(call ~susum-loop,$(call ~su-enc,$(word 1,$1)),$(word 2,$1),$(wordlist 3,99999999,$1)))),0)
 ~i-range = $(if $(filter 1,$(call ~i-cmp,$1,$2)),,$(if $(filter %0,$1),$(if $(filter %9,$2),$(if $(filter 0,$1),0 1 2 3 4 5 6 7 8 9 )$(foreach n,$(call ~i-range,$(or $(patsubst %0,%,$1),1),$(or $(patsubst %9,%,$2),0)),$n0 $n1 $n2 $n3 $n4 $n5 $n6 $n7 $n8 $n9 ),$(call ~i-range,$1,$(call ~i+,$2,$(subst --,,-$(subst +,,1)))) $2),$1 $(call ~i-range,$(call ~1+,$1),$2)))
 ~range = $(strip $(if $(findstring -,$1),$(addprefix -,$(call ~reverse,$(call ~range,$(call ~max,$(subst --,,-$(subst +,,$2)),1),$(subst --,,-$(subst +,,$1))))) $(call ~range,0,$2),$(call ~i-range,$(or $(addprefix $(findstring -,$1),$(subst $  ,,$(wordlist 2,99999999,$(subst $  0,0,$(subst 0,0 ,0$(subst +,,$(subst -,,$1))))))),0),$(or $(addprefix $(findstring -,$2),$(subst $  ,,$(wordlist 2,99999999,$(subst $  0,0,$(subst 0,0 ,0$(subst +,,$(subst -,,$2))))))),0))))
@@ -588,12 +662,15 @@ $(if $(call ~expect-x,0,$(call ~i-mod,0,7),num.scm:522),)
 
 endef
  
-define ///parse.min
+define [mod-'parse]
 # compiled from parse.scm
-# Requires: core runtime
-# Requires: scam-ct
-# Exports: parse-text_1 parse-subject_1 parse-forms&p;3;\.;\>;~%-r`[]1]0`[]3]0`>]~parse-exp],1[|1|0],1[|2|0`'],. parse-forms-r)4 describe-error_3 get-error-msg+describe-line)2 describe-lnum_2 parse-exp)2 parse-x)3 parse-x2)3 parse-dict-4)4 parse-dict-3)5 parse-dict-2)5 parse-dict-1)4 parse-dict-error)3 parse-dict)2 parse-dict-4)4 parse-dict-3)5 parse-dict-2)5 parse-dict-1)4 parse-skip)2 parse-array)2 parse-list&p;2;\.;\>;~parse-seq`[]1]0`']!R`[]2]0`>]~parse-exp],1[|1|0],1>|~1!S|@[}2}0`'],. parse-seq)5 parse-seq-err)4 new-Q)3 parse-exp)2 POut-format+POut-form&p;1;\.;\<;wordlist`']2`']99999999`[]1]0 POut-pos&p;1;\.;\<;word`']1`[]1]0 POut&p;2;\.;\:IL6`[]1]0`']|`[]2]0 find-word)3 pdec-str+pdec_1 penc_1 expand-spaces+compress-spaces+compact-comments+format-form_1 form-set-indices_2 form-typename_1 form-index_1 PList-is-empty?_1 string-value_1 symbol-to-string_1 symbol-name_1 PList#4;W]L;x`:P0 PString#4;W]S;x`:P1 PSymbol#4;W]S;x`:P2 PDict#4;W]L;x`:P3 PQuote#4;W]L;x`:P4 PQQuote#4;W]L;x`:P5 PUnquote#4;W]L;x`:P6 PSplice#4;W]L;x`:P7 PError#4;W]S;x`:P8
-$(call ^require,core)
+# Requires: 'core 'string 'runtime
+# Uses: 'scam-ct
+# Exports: parse-text_1 parse-subject_1 parse-forms&p;3;\.;\>;~%-r`[]1]0`[]3]0`>]~parse-exp],1[|1|0],1[|2|0`'],. parse-forms-r)4 describe-error_3 get-error-msg+get-subject-line-col_2 get-subject-line_2 parse-exp)2 parse-x)3 parse-x2)3 parse-dict-4)4 parse-dict-3)5 parse-dict-2)5 parse-dict-1)4 parse-dict-error)3 parse-dict)2 parse-dict-4)4 parse-dict-3)5 parse-dict-2)5 parse-dict-1)4 parse-skip)2 parse-array)2 parse-list&p;2;\.;\>;~parse-seq`[]1]0`']!R`[]2]0`>]~parse-exp],1[|1|0],1>|~1!S|@[}2}0`'],. parse-seq)5 parse-seq-err)4 parse-string)3]or]4 parse-string-bs)5 hex-digits#0;~%;p PQError)3 hh-to-dec+hex-ticks+parse-string)3]or]4 parse-exp)2 POut-format+POut-form&p;1;\.;\<;wordlist`']2`']99999999`[]1]0 POut-pos&p;1;\.;\<;word`']1`[]1]0 POut&p;2;\.;\:IL6`[]1]0`']|`[]2]0 find-word)3 pdec-str+pdec_1 penc_1 expand-spaces+compress-spaces+compact-comments+format-form_1 form-set-indices_2 form-typename_1 form-index_1 PList-is-empty?_1 string-value_1 symbol-to-string_1 symbol-name_1 PList#4;W]L;x`:P0 PString#4;W]S;x`:P1 PSymbol#4;W]S;x`:P2 PDict#4;W]L;x`:P3 PQuote#4;W]L;x`:P4 PQQuote#4;W]L;x`:P5 PUnquote#4;W]L;x`:P6 PSplice#4;W]L;x`:P7 PError#4;W]S;x`:P8
+$(call ^require,'core)
+
+$(call ^require,'string)
+
 $(if $(call ^add-tags,!1:P0!=PList!0W!0L !1:P1!=PString!0W!0S !1:P2!=PSymbol!0W!0S !1:P3!=PDict!0W!0L !1:P4!=PQuote!0W!0L !1:P5!=PQQuote!0W!0L !1:P6!=PUnquote!0W!0L !1:P7!=PSplice!0W!0L !1:P8!=PError!0W!0S),)
 ~symbol-name = $(if $(filter !:P2,$(firstword $1)),$(call ^n,3,$1),ERROR:symbol-name($1))
 ~symbol-to-string = $(if $(filter !:P2,$(firstword $1)),!:P1 $(word 2,$1) $(call ^d,$(call ^n,3,$1)),ERROR:symbol-to-string($1))
@@ -606,7 +683,7 @@ $(if $(call ^add-tags,!1:P0!=PList!0W!0L !1:P1!=PString!0W!0S !1:P2!=PSymbol!0W!
 define ~compact-comments
 $(subst ; ;,;;,$(subst !s, ,$(subst $  ,,$(foreach c,$(subst ;, ;,$(subst 
 , 
-,$(subst ", ",$(subst $  ,!s,$1)))),$(if $(filter ;%,$c),$(subst !s,,$c)!s,$c)))))
+,$(subst \, \,$(subst ", ",$(subst $  ,!s,$1))))),$(if $(filter ;%,$c),$(subst !s,,$c)!s,$c)))))
 endef
 define ~compress-spaces
 $(subst !6!6,!c,$(subst !2!0!2!0,!6,$(subst !0!0!0,!0!2,$(subst 
@@ -617,58 +694,67 @@ $(subst !6!6,!c,$(subst !2!0!2!0,!6,$(subst !0!0!0,!0!2,$(subst
 endef
 ~expand-spaces = $(subst !2,!0!0,$(subst !6,!2!2!2,$(subst !c,!6!6,$1)))
 define ~penc
-$(call ~compress-spaces,$(call ~compact-comments,$(subst !+, !0!+ ,$(subst $   , ,$(subst 0  !,0!,$(subst %, !p ,$(subst :, : ,$(subst $`, $` ,$(subst $[, $[ ,$(subst $], $] ,$(subst }, } ,$(subst {, { ,$(subst [, [ ,$(subst ], ] ,$(subst ", " ,$(subst 
+$(call ~compress-spaces,$(call ~compact-comments,$(subst !0 !0,!0!0,$(subst !0 !0,!0!0,$(subst $   , ,$(subst !+, !+ ,$(subst %, !p ,$(subst \, \,$(subst :, : ,$(subst $`, $` ,$(subst $[, $[ ,$(subst $], $] ,$(subst }, } ,$(subst {, { ,$(subst [, [ ,$(subst ], ] ,$(subst ", " ,$(subst 
 , 
- ,$(subst !0, !0 ,$(subst ;, ; ,$(subst \",!Q,$(subst \\,!b,$(subst ', ' ,$(subst `, ` ,$(subst $(if ,,, @),$(if ,,,@ ),$(subst $(if ,,,),$(if ,, , ),$(if $1,$(call ~demote,$1))))))))))))))))))))))))))
+ ,$(subst !0, !0 ,$(subst ;, ; ,$(subst \",!Q,$(subst \\,!b,$(subst ', ' ,$(subst `, ` ,$(subst $(if ,,, @),$(if ,,,@ ),$(subst $(if ,,,),$(if ,, , ),$(if $1,$(call ~demote,$1))))))))))))))))))))))))))))
 endef
-~pdec = $(call ~promote,$(call ~expand-spaces,$(subst !p,%,$(subst !b,\\,$(subst !Q,\",$(subst $  ,,$(subst !0!+,!+,$1)))))))
-define ~pdec-str
-$(or $(call ~expand-spaces,$(subst !p,%,$(subst !b,\,$(subst !Q,",$(subst \n,
-,$(subst \t,!+,$(subst $  ,,$(subst !0!+,!+,$1)))))))),!.)
-endef
+~pdec = $(call ~promote,$(call ~expand-spaces,$(subst !p,%,$(subst !b,\\,$(subst !Q,\",$(subst $  ,,$1))))))
+~pdec-str = $(or $(call ~expand-spaces,$(subst !p,%,$(subst !b,\,$(subst !Q,",$1)))),!.)
 ~find-word = $(foreach p,$(call ~1+,$(call ~1+,$2)),$(if $(filter $3,$(or $(wordlist $2,$p,$1),$3)),$(if $(filter $3,$(or $(word $2,$1),$3)),$2,$(foreach q,$(call ~1+,$2),$(if $(filter $3,$(or $(word $q,$1),$3)),$q,$p))),$(call ~find-word,$1,$(call ~1+,$p),$3)))
 ~POut-format = $(if $(and $(call ~numeric?,$(word 1,$1)),$(filter !:%,$(word 2,$1))),(POut $(word 1,$1) $(call ~format,$(wordlist 2,99999999,$1))))
-~new-Q = $3 $(if $(word $3,$1),!:P1 $2 $(call ^d,$(call ~promote,$(call ~pdec-str,$(subst ",,$(wordlist $2,$3,$1))))),!:P8 $2 ")
+~hex-ticks = $(filter :,$(subst :, : ,$(word 2,$(subst $1, ,xFf:Ee:Dd:Cc:Bb:Aa:9:8:7:6:5:4:3:2:1:))))
+~hh-to-dec = $(words $(subst :,: : : : : : : : : : : : : : : :,$(call ~hex-ticks,$(word 1,$1))) $(call ~hex-ticks,$(word 2,$1)))
+~PQError = $(call ~find-word,$1,$2,") !:P8 $2 $(call ^d,$3)
+~hex-digits := 0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F
+define ~parse-string-bs
+$(or $(if $(filter \n% \t%,$5),$(call ~parse-string,$1,$2,$(call ~1+,$3),$4$(subst \t,!+,$(subst \n,
+,$5)))),$(foreach hh,$(foreach d1,$(~hex-digits),$(if $(filter \x$(d1)%,$5),$(foreach d2,$(~hex-digits),$(if $(filter \x$(d1)$(d2)%,$5),$(d1)
+$(d2))))),$(call ~parse-string,$1,$2,$(call ~1+,$3),$4$(subst \x$(subst 
+,,$(hh)),$(call ~strings-from-bytes,$(call ~hh-to-dec,$(strip $(hh)))),$5))),$(call ~PQError,$1,$3,!B))
+endef
+~parse-string = $(or $(foreach w,$(word $3,$1),$(if $(filter ",$w),$3 !:P1 $2 $(call ^d,$(call ~promote,$(call ~pdec-str,$4))),$(if $(filter \\%,$w),$(call ~parse-string-bs,$1,$2,$3,$4,$w),$(call ~parse-string,$1,$2,$(call ~1+,$3),$4$w)))),$3 !:P8 $2 ")
 ~parse-seq-err = $(if $(filter .,$4),$2 !:P8 $2 $(call ^d,$(subst ],[,$(subst $],$[,$1))),$3 !:P8 $3 $(call ^d,$4 $1))
 ~parse-seq = $(if $(filter !:P8,$(firstword $(wordlist 2,99999999,$4))),$(if $(call ~eq?,$2,$(call ^n,3,$(wordlist 2,99999999,$4))),$(word 1,$4) !:P0 $3 $5,$(call ~parse-seq-err,$2,$3,$(word 2,$(wordlist 2,99999999,$4)),$(call ^n,3,$(wordlist 2,99999999,$4)))),$(call ~parse-seq,$1,$2,$3,$(call ~parse-exp,$1,$(call ~1+,$(word 1,$4))),$(call ~conj,$5,$(wordlist 2,99999999,$4))))
 ~parse-array = $(call ~parse-seq,$1,],$2,$(call ~parse-exp,$1,$(call ~1+,$2)),$(call ^d,!:P2 0 vector))
 define ~parse-skip
-$(if $(filter !0% 
-% ;%,$(word $2,$1)),$(call ~parse-skip,$1,$(call ~1+,$2)),$2 $(word $2,$1))
+$(if $(filter !0% !+% 
+% ;%,$(word $2,$1)),$(call ~parse-skip,$1,$(call ~1+,$2)),$2)
 endef
 ~parse-dict = $(call ~parse-dict-1,$1,$2,,$(call ~parse-exp,$1,$(call ~1+,$2)))
 ~parse-dict-error = $(if $(filter !:P8,$(firstword $(wordlist 2,99999999,$1))),$(if $(call ~eq?,.,$(call ^n,3,$(wordlist 2,99999999,$1))),$(word 2,$(wordlist 2,99999999,$1)) !:P8 $3 {,$(if $(if $(filter $2,$(call ^d,$(call ^n,3,$(wordlist 2,99999999,$1)))),,1),$(word 2,$(wordlist 2,99999999,$1)) !:P8 $(word 2,$(wordlist 2,99999999,$1)) $(call ^d,$(call ^n,3,$(wordlist 2,99999999,$1)) }))))
-~parse-dict-1 = $(or $(call ~parse-dict-error,$4,},$2),$(if $(filter !:P8,$(firstword $(wordlist 2,99999999,$4))),$(word 1,$4) !:P3 $2 $3,$(call ~parse-dict-2,$1,$2,$3,$(wordlist 2,99999999,$4),$(call ~parse-exp,$1,$(call ~1+,$(word 1,$4))))))
-~parse-dict-2 = $(or $(call ~parse-dict-error,$5,: },$2),$(if $(filter !:P8,$(firstword $(wordlist 2,99999999,$5))),$(if $(call ~eq?,$(call ^n,3,$(wordlist 2,99999999,$5)),:),$(call ~parse-dict-3,$1,$2,$3,$4,$(call ~parse-exp,$1,$(call ~1+,$(word 1,$5)))))),$(word 1,$5) !:P8 $(word 1,$5) :?)
+~parse-dict-1 = $(or $(call ~parse-dict-error,$4,},$2),$(if $(filter !:P8,$(firstword $(wordlist 2,99999999,$4))),$(word 1,$4) !:P3 $2 $3,$(call ~parse-dict-2,$1,$2,$3,$(wordlist 2,99999999,$4),$(call ~parse-skip,$1,$(call ~1+,$(word 1,$4))))))
+~parse-dict-2 = $(if $(filter :,$(word $5,$1)),$(call ~parse-dict-3,$1,$2,$3,$4,$(call ~parse-exp,$1,$(call ~1+,$5))),$5 !:P8 $5 :?)
 ~parse-dict-3 = $(or $(call ~parse-dict-error,$5,},$2),$(if $(filter !:P8,$(firstword $(wordlist 2,99999999,$5))),$(if $(call ~eq?,$(call ^n,3,$(wordlist 2,99999999,$5)),}),$(word 2,$(wordlist 2,99999999,$5)) !:P8 $(word 2,$(wordlist 2,99999999,$5)) v?)),$(call ~parse-dict-4,$1,$2,$(call ~append,$3,$(call ^k,$4)!=$(call ^d,$(wordlist 2,99999999,$5))),$(call ~parse-skip,$1,$(call ~1+,$(word 1,$5)))))
-~parse-dict-4 = $(call ~parse-dict-1,$1,$2,$3,$(call ~parse-exp,$1,$(if $(filter $(if ,,,),$(word 2,$4)),$(call ~1+,$(word 1,$4)),$(word 1,$4))))
+~parse-dict-4 = $(call ~parse-dict-1,$1,$2,$3,$(call ~parse-exp,$1,$(if $(filter $(if ,,,),$(word $4,$1)),$(call ~1+,$4),$4)))
 ~parse-x2 = $(if $(filter !:P8,$(firstword $(wordlist 2,99999999,$3))),$3,$(word 1,$3) $(call ^Y,$2,$(wordlist 2,99999999,$3),,,,,,,,$(if $(filter ',$1),!:P4 $`1 $`2,$(if $(filter `,$1),!:P5 $`1 $`2,$(if $(filter $(if ,,,),$1),!:P6 $`1 $`2,$(if $(filter $(if ,,,@),$1),!:P7 $`1 $`2,!:P8 $(call ^E,$2) $`(call ^d,internal:parse-x2:$(call ^E,$1))))))))
 define ~parse-x
-$(if $(filter !0% 
+$(if $(filter !0% !+% 
 % ;% (),$(or $(word $(call ~1+,$3),$2),())),$3 !:P8 $3 $(call ^d,$1),$(call ~parse-x2,$1,$3,$(call ~parse-exp,$2,$(call ~1+,$3))))
 endef
 define ~parse-exp
-$(or $(foreach w,$(word $2,$1),$(if $(filter !0% 
-%,$w),$(call ~parse-exp,$1,$(call ~1+,$2)),$(if $(filter $] ] },$w),$2 !:P8 $2 $(call ^d,$w),$(if $(filter $[,$w),$(call ~parse-seq,$1,$],$2,$(call ~parse-exp,$1,$(call ~1+,$2)),),$(if $(filter ",$w),$(call ~new-Q,$1,$2,$(call ~find-word,$1,$(call ~1+,$2),")),$(if $(filter ;%,$w),$(call ~parse-exp,$1,$(call ~1+,$(call ~find-word,$1,$2,
+$(or $(foreach w,$(word $2,$1),$(if $(filter !0% !+% 
+%,$w),$(call ~parse-exp,$1,$(call ~1+,$2)),$(if $(filter $] ] },$w),$2 !:P8 $2 $(call ^d,$w),$(if $(filter $[,$w),$(call ~parse-seq,$1,$],$2,$(call ~parse-exp,$1,$(call ~1+,$2)),),$(if $(filter ",$w),$(call ~parse-string,$1,$2,$(call ~1+,$2)),$(if $(filter ;%,$w),$(call ~parse-exp,$1,$(call ~1+,$(call ~find-word,$1,$2,
 %))),$(if $(filter [,$w),$(call ~parse-array,$1,$2),$(if $(filter {,$w),$(call ~parse-dict,$1,$2),$(if $(filter $(if ,,' ` , ,@),$w),$(call ~parse-x,$w,$1,$2),$(if $(call ~numeric?,$w),$2 !:P1 $2 $(call ^d,$w),$(if $(filter $` : !p,$w),$2 !:P8 $2 $(call ^d,$(call ~pdec,$w)),$2 !:P2 $2 $(call ^d,$(call ~promote,$w))))))))))))),$2 !:P8 $2 .)
 endef
-define ~describe-lnum
-$(words 1 $(filter 
-,$(subst 
-,
- ,$(wordlist 2,$(or $1,1),x$2))))
+define ~get-subject-line
+$(words $(filter 
+%,$(wordlist 1,$(or $1,1),
+ $2)))
 endef
-define ~describe-line
-$(call ^Y,$(call ~promote,$(lastword $(call ~split,
-,$(wordlist 2,$(or $1,1),X $2)))),$(call ^u,$(word 1,$(call ~split,
-,$(wordlist $(or $1,1),99999999,$2)))),,,,,,,,$`(call ^d,$`(call ~pdec,$`1)) $`(call ^d,$`(call ~pdec,$`(word 1,$`2))) $`(call ^d,$`(call ~pdec,$`(wordlist 2,99999999,$`2))))
+define ~get-subject-line-col
+$(call ^Y,$(subst 
+, 
+,$(subst $  ,,$(wordlist 1,$(or $1,1),
+ $2))),,,,,,,,,$`(words $`1):$`(call ~string-len,$`(call ~pdec,$`(lastword $`1))))
 endef
-~get-error-msg = $(if $(filter ` ',$(word 1,$1)),prefix "$(word 1,$1)" must immediately precede expression,$(if $(filter ( ) [ ] { },$(word 1,$1)),unmatched "$(word 1,$1)",$(if $(filter ",$(word 1,$1)),unterminated string,$(if $(filter :,$(word 1,$1)),saw ":" where not expected,$(if $(filter :?,$(word 1,$1)),expected ": VALUE" following dictionary key,$(if $(filter v?,$(word 1,$1)),expected value following dictionary "KEY:",$1))))))
+~get-error-msg = $(if $(filter ` ',$(word 1,$1)),prefix "$(word 1,$1)" must immediately precede expression,$(if $(filter ( ) [ ] { },$(word 1,$1)),unmatched "$(word 1,$1)",$(if $(filter ",$(word 1,$1)),unterminated string,$(if $(filter $(if ,,: ,),$(word 1,$1)),saw ":" where not expected,$(if $(filter :?,$(word 1,$1)),expected ": VALUE" following dictionary key,$(if $(filter v?,$(word 1,$1)),expected value following dictionary "KEY:",$(if $(filter !B,$(word 1,$1)),invalid backslash sequence in string,$(if $(filter $(word 1,$1),$`),invalid symbol character "$(word 1,$1)",$1))))))))
 define ~describe-error
-$(if $(filter !:P8,$(firstword $1)),$(call ^Y,$(call ~penc,$2),$(if $3,$3:,line ),$(call ~get-error-msg,$(call ^n,3,$1)),$(word 2,$1),,,,,,$`(if $`(call ~word-index?,$`4),$`(call ~sprintf,%s%s: %s
-at: %s
-,$`2,$`(call ~describe-lnum,$`4,$`1),$`3,$`(call ~concat-vec,$`(call ~describe-line,$`4,$`1),*)),$`(call ~sprintf,%s:?: %s
-,$`2,$`3))))
+$(if $(filter !:P8,$(firstword $1)),$(call ^Y,$(call ~get-subject-line-col,$(word 2,$1),$(call ~penc,$2)),$2,$3,$(call ~get-error-msg,$(call ^n,3,$1)),,,,,,$`(if $`(call ~word-index?,$`(word 2,$(call ^E,$1))),$`(call ~sprintf,%s:%s: %s
+%s
+%s
+,$`3,$`1,$`4,$`(call ~nth,$`(word 1,$`(subst :, ,$`1)),$`(call ~split,
+,$`2)),$`(subst $`  ^,^,$`(call ~string-repeat, ,$`(word 2,$`(subst :, ,$`1)))^)),$`(call ~sprintf,%s: %s
+,$`3,$`(call ^n,3,$(call ^E,$1))))))
 endef
 ~parse-forms-r = $(if $(filter !:P8,$(firstword $(wordlist 2,99999999,$3))),$(call ^Y,$4,$(if $(call ~eq?,$(call ^n,3,$(wordlist 2,99999999,$3)),.),,$(wordlist 2,99999999,$3)),,,,,,,,$2),$(call ~parse-forms-r,$1,$2,$(call ~parse-exp,$1,$(call ~1+,$(word 1,$3))),$(call ~conj,$4,$(wordlist 2,99999999,$3))))
 ~parse-subject = $(call ~parse-forms-r,$1,$`(if $`2,$`(call ~conj,$`1,$`2),$`1),$(call ~parse-exp,$1,1),)
@@ -676,20 +762,26 @@ endef
 
 endef
  
-define ///repl.min
+define [mod-'repl]
 # compiled from repl.scm
-# Requires: core io parse compile gen num runtime
-# Requires: scam-ct
-# Exports: repl-file_1 repl-rep_2 repl_0 initial-state#2;\.;p;\>;~eval-and-print`<]foreach],1'|lib],1:IL1|~LIBS],1:IL6|@'}!Qrequire@0!O|@:IL1}lib|@'}!O!R!n`>]~compile-prelude],1'|,1. read-eval-print+eval-and-print)2 describe-env)2 describe-binding)3 help)0 *2#0;~%;x *1#0;~%;x LIBS#0;~%;p
-$(call ^require,core)
-$(call ^require,io)
-$(call ^require,parse)
-$(call ^require,compile)
-$(call ^require,gen)
-$(call ^require,num)
-~LIBS := core io parse escape gen0 gen1 compile num repl
-~*1 := 
-~*2 := 
+# Requires: 'core 'io 'parse 'compile 'gen 'num 'runtime
+# Uses: 'scam-ct
+# Exports: repl-file_1 repl-rep_2 repl_0 initial-state#2;\.;p;\>;~eval-and-print`:IL6],1<|foreach|@'}lib|@:IL1}~LIBS|@:IL6}@1'@0!Qrequire@10!O!E}@1:IL1@0lib}@1'@0!O!R],1'|!Qdeclare}*1!R!Qdeclare}*2!R`>]~append],1>|~compile-prelude|@'}@. read-eval-print+eval-and-print)2 describe-env)2 describe-binding)3 help)0 *2#0;%;p *1#0;%;p LIBS#0;~%;p
+$(call ^require,'core)
+
+$(call ^require,'io)
+
+$(call ^require,'parse)
+
+$(call ^require,'compile)
+
+$(call ^require,'gen)
+
+$(call ^require,'num)
+
+~LIBS := compile core getopts io num string utf8
+*1 := 
+*2 := 
 define ~help
 $(and $(info Commands:
   :q or ^D : exit REPL loop
@@ -706,7 +798,7 @@ Global variables in REPL:
 endef
 ~describe-binding = $(if $(or $3,$(if $(filter i%,$(word 3,$2)),,1)),$(if $(filter !:EDefn5,$(firstword $2)),built-in function,$(if $(filter !:EDefn1,$(firstword $2)),$(if $(call ~eq?,$(call ^n,2,$2),:),compound macro,function)$(if $(wordlist 5,99999999,$2),$(call ~sprintf, (%s arguments),$(call ^n,4,$2))),$(if $(filter !:EDefn0,$(firstword $2)),variable,$(if $(filter !:EDefn2,$(firstword $2)),symbol macro: $(call ~format,$(wordlist 4,99999999,$2)),$(if $(filter !:EDefn3,$(firstword $2)),executable macro,$(if $(filter !:EDefn4,$(firstword $2)),constructor,)))))))
 ~describe-env = $(foreach w,$(call ~reverse,$(call ~dict-compact,$1)),$(call ^Y,$(call ~promote,$(subst !8,%,$(word 1,$(subst !=, ,$w)))),$(call ~describe-binding,$(call ~promote,$(subst !8,%,$(word 1,$(subst !=, ,$w)))),$(call ~nth,2,$(subst !=, ,$w)),$2),,,,,,,,$`(if $`2,$`(call ~printf,  %s : %s,$`1,$`2))))
-~eval-and-print = $(call ^Y,$(call ~compile-text,$1,$2,[console],),$2,$1,,,,,,,$`(if $`(filter $`[ [ {,$`(if $`(filter !:P8,$`(firstword $`(call ^u,$`(word 1,$`(call ~nth,1,$`1))))),$`(call ^n,3,$`(call ^u,$`(word 1,$`(call ~nth,1,$`1)))))),$`(call ^d,$`3) $`(call ^d,$`2),$`(if $`(filter .,$`(if $`(filter !:P8,$`(firstword $`(call ^u,$`(word 1,$`(call ~nth,1,$`1))))),$`(call ^n,3,$`(call ^u,$`(word 1,$`(call ~nth,1,$`1)))))),!. $`(call ^d,$`2),$`(if $`(call ~nth,1,$`1),$`(and $`(foreach err,$`(call ~nth,1,$`1),$`(call ^d,$`(info $`(call ~describe-error,$`(call ^u,$`(err)),$`3,))))1,!. $`(call ^d,$`2)),$`(and $`(call ^Y,$`(call ^Y,,,,,,,,,,$`(call ~nth,2,$`1)),,,,,,,,,$``(if $``1,$``(and $``(call ^set,~*2,$``(~*1))1,$``(call ^set,~*1,$``1)1,$``(info $``(call ~format,$``1)))))1,!. $`(call ^d,$`(call ~nth,3,$`1)))))))
+~eval-and-print = $(call ^Y,$(call ~compile-text,$1,$2,[console],),$2,$1,,,,,,,$`(if $`(filter $`[ [ {,$`(if $`(filter !:P8,$`(firstword $`(call ^u,$`(word 1,$`(call ~dict-get,errors,$`1))))),$`(call ^n,3,$`(call ^u,$`(word 1,$`(call ~dict-get,errors,$`1)))))),$`(call ^d,$`3) $`(call ^d,$`2),$`(if $`(filter .,$`(if $`(filter !:P8,$`(firstword $`(call ^u,$`(word 1,$`(call ~dict-get,errors,$`1))))),$`(call ^n,3,$`(call ^u,$`(word 1,$`(call ~dict-get,errors,$`1)))))),!. $`(call ^d,$`2),$`(if $`(call ~dict-get,errors,$`1),$`(and $`(foreach err,$`(call ~dict-get,errors,$`1),$`(call ^d,$`(info $`(call ~describe-error,$`(call ^u,$`(err)),$`3,[stdin]))))1,!. $`(call ^d,$`2)),$`(and $`(call ^Y,$`(call ^Y,,,,,,,,,,$`(call ~dict-get,code,$`1)),,,,,,,,,$``(if $``1,$``(and $``(call ^set,*2,$``(*1))1,$``(call ^set,*1,$``1)1,$``(info $``(call ~format,$``1)))))1,!. $`(call ^d,$`(call ~dict-get,env,$`1)))))))
 define ~read-eval-print
 $(call ^Y,$(call ~getline,$(if $(call ^u,$(word 1,$1)),+ ,> )),$(call ~nth,1,$1),$(call ~nth,2,$1),$1,,,,,,$`(if $`(call ~eq?,$`1,?
 ),$`(and $`(call ~help)1,$`4),$`(if $`(call ~eq?,$`1,:
@@ -715,31 +807,26 @@ $(call ^Y,$(call ~getline,$(if $(call ^u,$(word 1,$1)),+ ,> )),$(call ~nth,1,$1)
 ),$`(and $`(call ~describe-env,$`3,)1,$`4),$`(if $`(call ~eq?,$`1,:E
 ),$`(and $`(call ~describe-env,$`3,1)1,$`4),$`(call ~eval-and-print,$`2$`1,$`3))))))))
 endef
-define ~repl
-$(and $(info SCAM interactive mode. Type '?' for help.)1,$(call ~while,$(value ~identity),$(value ~read-eval-print),$(call ~eval-and-print,$(foreach lib,$(~LIBS),(require "$(lib)")
-),$(call ~compile-prelude,)))1,$(info ))
-endef
-define ~repl-rep
-$(call ^Y,$(call ~compile-text,$1,$(call ~nth,2,$(call ~eval-and-print,$(foreach lib,$(~LIBS),(require "$(lib)")
-),$(call ~compile-prelude,))),$(or $2,[commandline]),),,,,,,,,,$`(if $`(call ~nth,1,$`1),$`(and $`(foreach err,$`(call ~nth,1,$`1),$`(call ^d,$`(info $`(call ~describe-error,$`(call ^u,$`(err)),$(call ^E,$1),))))1,1),$`(info $`(call ^Y,,,,,,,,,,$`(call ~nth,2,$`1)))))
-endef
-~repl-file = $(call ^Y,$(call ~read-file,$1),,,,,,,,,$`(if $`1,$`(call ^Y,$`(call ~compile-text,$`1,$`(call ~compile-prelude,),$(call ^E,$1),///~),,,,,,,,,$``(if $``(call ~nth,1,$``1),$``(and $``(foreach err,$``(call ~nth,1,$``1),$``(call ^d,$``(info $``(call ~describe-error,$``(call ^u,$``(err)),$`(call ^E,$`1),$(call ^E,$1,`)))))1,1),$``(eval $``(call ~nth,2,$``1)))),$`(and $`(call ~printf,error: empty/missing file %q,$(call ^E,$1))1,1)))
+~repl = $(and $(call ~do-not-trace,~repl ~eval-and-print ~while ~while-0 ~while-N)1,$(call ~while,$(value ~identity),$(value ~read-eval-print),$(call ~eval-and-print,$(foreach lib,$(~LIBS),(require "'$(lib)"))(declare *1)(declare *2),$(call ~append,$(call ~compile-prelude,))))1,$(info ))
+~repl-rep = $(call ^Y,$(call ~compile-text,$1,$(call ~nth,2,$(call ~eval-and-print,$(foreach lib,$(~LIBS),(require "'$(lib)"))(declare *1)(declare *2),$(call ~append,$(call ~compile-prelude,)))),$(or $2,[commandline]),),,,,,,,,,$`(if $`(call ~dict-get,errors,$`1),$`(and $`(foreach err,$`(call ~dict-get,errors,$`1),$`(call ^d,$`(info $`(call ~describe-error,$`(call ^u,$`(err)),$(call ^E,$1),))))1,1),$`(call ^Y,$`(call ^Y,,,,,,,,,,$`(call ~dict-get,code,$`1)),,,,,,,,,$``(if $``1,$``(info $``(call ~format,$``1))))))
+~repl-file = $(call ^Y,$(call ~read-file,$1),,,,,,,,,$`(if $`1,$`(call ^Y,$`(call ~compile-text,$`1,$`(call ~compile-prelude,),$(call ^E,$1),///~),,,,,,,,,$``(if $``(call ~dict-get,errors,$``1),$``(and $``(foreach err,$``(call ~dict-get,errors,$``1),$``(call ^d,$``(info $``(call ~describe-error,$``(call ^u,$``(err)),$`(call ^E,$`1),$(call ^E,$1,`)))))1,1),$``(eval $``(call ~dict-get,code,$``1)))),$`(and $`(call ~printf,error: empty/missing file %q,$(call ^E,$1))1,1)))
 
 endef
  
-define ///runtime.min
+define [mod-'runtime]
 # compiled from runtime.scm
-# Exports: SCAM!TMAIN#0;%;p ^start#1;%;p;3 start)3 *started*#0;%;p ^require#1;%;p;1 ^required-files#0;~%;p ^add-tags#1;%;p;1 ^tags#0;%;x run-hooks_1 add-hook_2 *hooks*#0;~%;p bound?&x;1;\.;\<;if`<]filter-out],1'|u!p],1<|flavor|@[}1}0`']1 rrest&x;1;\.;\<;wordlist`']3`']99999999`[]1]0 rest&x;1;\.;\<;wordlist`']2`']99999999`[]1]0 first&x;1;\.;\>;^u`<]word],1'|1],1[|1|0 nth-rest&x;2;\.;\<;wordlist`[]1]0`']99999999`[]2]0 not&x;1;\.;\<;if`[]1]0`'],.`']1 nil#2;\.;x;\';\. set-rglobal_2]or]3 set-global_2]or]3 nth_2 demote_1 promote_1 apply_2 ^E#1;%;p;1]or]2 ^fset#1;%;p;3 ^set#1;%;p;2]or]3 esc-LHS_1 esc-RHS&p;1;\.;\<;subst`']!n`']$!E`<]subst],1'|!N],1'|$!O],1<|subst|@'}$|@'}$$|@[}1}0 ^t#1;%;p;0 F#2;\.;p;\';~^f TC#2;\.;p;\';~^tc ^ta#1;%;p;0]or]more ^tc)1]or]more ^tp#1;%;p;2 ^f+^apply)1]or]more ^av#1;%;p;0 ^v#1;%;p;0 ^Y#1;%;p;0]or]more ^k#1;%;p;1 ^n#1;%;p;2 ^u#1;%;p;1 ^d#1;%;p;1 SCAM!TDEBUG#0;%;x SCAM!TMODS#0;%;x
-SCAM_DEBUG ?=
-$(if $(if $(findstring R,$(SCAM_DEBUG)),$(info runtime: $(lastword $(MAKEFILE_LIST)))),)
-define \n
+# Requires: 'runtime
+# Uses: 'scam-ct
+# Exports: ^start#1;%;p;3 check-exit+start-trace+run-at-exits)0 at-exit_1 *atexits*#0;~%;p tracing&x;2;\.;\>;~untrace`>]~trace],1[|1|0`[]2]0 untrace_1]or]2 trace_1 untrace-ext+trace-ext)2 do-not-trace_1 ^require#1;%;p;1 ^load#1;%;p;1 load-ext+mod-var&p;1;\.;\:IL6`']!Hmod-`[]1]0`']!I *required*#0;~%;p ^add-tags#1;%;p;1 ^tags#0;%;x bound?&x;1;\.;\<;if`<]filter-out],1'|u!p],1<|flavor|@[}1}0`']1 rrest&x;1;\.;\<;wordlist`']3`']99999999`[]1]0 rest&x;1;\.;\<;wordlist`']2`']99999999`[]1]0 first&x;1;\.;\>;^u`<]word],1'|1],1[|1|0 nth-rest&x;2;\.;\<;wordlist`[]1]0`']99999999`[]2]0 not&x;1;\.;\<;if`[]1]0`'],.`']1 nil#2;\.;x;\';\. set-rglobal_2]or]3 set-global_2]or]3 nth_2 demote_1 promote_1 apply_2 ^E#1;%;p;1]or]2 ^fset#1;%;p;3 ^set#1;%;p;2]or]3 esc-LHS+esc-RHS&p;1;\.;\<;subst`']!n`']$!E`<]subst],1'|!N],1'|$!O],1<|subst|@'}$|@'}$$|@[}1}0 ^t#1;%;p;0 ^ta#1;%;p;0]or]more ^tc#1;%;p;1]or]more ^tp#1;%;p;2 ^f#1;%;p;1 ^apply)1]or]more ^av#1;%;p;0 ^v#1;%;p;0 ^Y#1;%;p;0]or]more ^k#1;%;p;1 ^n#1;%;p;2 ^u#1;%;p;1 ^d#1;%;p;1 *do-not-trace*#0;~%;p
+~*do-not-trace* := $(value .VARIABLES)
+define '
 
 
 endef
  [ := (
  ] := )
 " := \#
-' := $(\n)
+' := $'
 ` := $$
 & := ,
 
@@ -751,11 +838,14 @@ endef
 ^v = $(subst !.,!. ,$(filter-out %!,$(subst !. ,!.,$(foreach n,$(wordlist $N,9,1 2 3 4 5 6 7 8),$(call ^d,$($n)))$(if $9, $9) !)))
 ^av = $(foreach N,1,$(^v))
 ~^apply = $(call ^Y,$(call ^n,1,$2),$(call ^n,2,$2),$(call ^n,3,$2),$(call ^n,4,$2),$(call ^n,5,$2),$(call ^n,6,$2),$(call ^n,7,$2),$(call ^n,8,$2),$(wordlist 9,9999,$2),$1)
-~^f = "$(subst ",\",$(subst \,\\,$1))"
-^tp = $(info $1 $(call ~^f,$2))$2
-~^tc = $(call $1,$2,$3,$4,$5,$6,$7,$8,$(call ^n,1,$9),$(wordlist 2,9999,$9))
-^ta = $(if $(or $1,$2,$3,$4,$5,$6,$7,$8,$9), $(~^f)$(call ~^tc,^ta,$2,$3,$4,$5,$6,$7,$8,$9))
-^t = $(info --> ($1$(call ~^tc,^ta,$2,$3,$4,$5,$6,$7,$8,$9)))$(call ^tp,<-- $1:,$(call ~^tc,$1,$2,$3,$4,$5,$6,$7,$8,$9))
+define ^f
+"$(subst 
+,\n,$(subst ",\",$(subst \,\\,$1)))"
+endef
+^tp = $(info $1 $(call ^f,$2))$2
+^tc = $(call $1,$2,$3,$4,$5,$6,$7,$8,$(call ^n,1,$9),$(wordlist 2,9999,$9))
+^ta = $(if $(or $1,$2,$3,$4,$5,$6,$7,$8,$9), $(^f)$(call ^tc,^ta,$2,$3,$4,$5,$6,$7,$8,$9))
+^t = $(info --> ($1$(call ^tc,^ta,$2,$3,$4,$5,$6,$7,$8,$9)))$(call ^tp,<-- $1:,$(call ^tc,$1,$2,$3,$4,$5,$6,$7,$8,$9))
 define ~esc-LHS
 $`(if ,,$(subst $],$`],$(subst $[,$`[,$(subst 
 ,$`',$(subst #,$`",$(subst $`,$`$`,$1))))))
@@ -783,92 +873,136 @@ endef
 ~nth = $(call ^n,$1,$2)
 ~set-global = $(call ^set,$1,$2,$3)
 ~set-rglobal = $(call ^fset,$1,$2,$3)
-~add-hook = $(call ^set,~*hooks*,$(~*hooks*) $1=$2)
-~run-hooks = $(foreach funcname,$(patsubst $1=%,%,$(filter $1=%,$(~*hooks*))),$(call $(funcname)))
 ^tags := 
 ^add-tags = $(call ^set,^tags,$(^tags) $(filter-out $(^tags),$1))
-~^required-files := ///runtime.min
-^require = $(foreach ^file,$(filter-out $(~^required-files),$(or $(word 1,$(foreach f,$(SCAM_MODS),$(if $(filter $(notdir $1),$(notdir $(basename $f))),$f))),$(if $(if $(filter-out u%,$(flavor ///$(notdir $1).min)),1),///$(notdir $1).min,$1.min))),$(and $(call ^set,~^required-files,$(~^required-files) $(^file))1,$(if $(findstring R,$(SCAM_DEBUG)),$(info require: $(^file)))1,$(if $(filter ///%,$(^file)),$(eval $(value $(^file))),$(eval include $(^file)))1,$(call ~run-hooks,load)1,$(if $(findstring Rx,$(SCAM_DEBUG)),$(info exited: $(^file)))))
-define ~start
-$(if $(if $(*started*),,1),$(and $(call ^set,*started*,1)1,$(if $(if $(filter-out u%,$(flavor ///trace.min)),1),$(call ^require,trace))1,$(call ^require,$(notdir $1))1,$(call ^Y,$(call $2,$3),,,,,,,,,$`(eval .DEFAULT_GOAL :=
-.PHONY: .scam/-exit
-.scam/-exit: $`(.DEFAULT_GOAL); @exit '$`(or $`(subst ',,$`(strip $`1)),0)'$``(call ~run-hooks,exit)))))
+~*required* := 
+~load-ext = 
+^load = $(and $(or $(call ~load-ext,$1),$(if $(if $(filter-out u%,$(flavor [mod-$1])),1),$(eval $(value [mod-$1])),$(error module $1 not found!)))1,$1)
+^require = $(and $(or $(filter $1,$(~*required*)),$(and $(call ^set,~*required*,$(~*required*) $1)1,$(call ^load,$1)))1,)
+~do-not-trace = $(call ^set,~*do-not-trace*,$(~*do-not-trace*) $1)
+~trace = $(if $1,$(and $(call ^require,'trace)1,$(call ~trace-ext,$1,$(~*do-not-trace*))))
+~untrace = $(and $(if $1,$(and $(call ^require,'trace)1,$(call ~untrace-ext,$1)))1,$2)
+~*atexits* := 
+~at-exit = $(call ^set,~*atexits*,$(call ^d,$1) $(~*atexits*))
+~run-at-exits = $(and $(foreach fn,$(~*atexits*),$(call ^d,$(call ^Y,,,,,,,,,,$(call ^u,$(fn)))))1,)
+~start-trace = $(call ~trace,$(value $(if $(filter '%,$1),_)SCAM_TRACE))
+~check-exit = $(if $(subst 0,,$(subst 9,,$(subst 8,,$(subst 7,,$(subst 6,,$(subst 5,,$(subst 4,,$(subst 3,,$(subst 2,,$(subst 1,,$(patsubst -%,%,$(subst $ 	,x,$(subst $  ,x,$1))))))))))))),$(error scam: main returned '$1'),$(or $1,0))
+define ^start
+$(and $(call ~start-trace,$1)1,$(call ~do-not-trace,^require ^load ^load-ext)1,$(call ^require,$1)1,$(call ~start-trace,$1)1,$(eval $(call ^Y,$(call ~check-exit,$(call ^Y,$3,,,,,,,,,$(value $2))),,,,,,,,,.DEFAULT_GOAL :=
+.PHONY: [exit]
+[exit]: $`(.DEFAULT_GOAL);@exit $`1$``(call ~run-at-exits))))
 endef
-$(if $(if $(if $(if $(filter-out u%,$(flavor ^start)),1),,1),$(call ^fset,^start,$(value ~start))),)
-$(if $(if $(SCAM_MAIN),$(call ~start,$(SCAM_MAIN),,)),)
+$(if $(call ~do-not-trace,^start ~start-trace),)
 
 endef
  
-define ///scam-ct.min
+define [mod-'scam-ct]
 # compiled from scam-ct.scm
-# Requires: runtime
-# Exports: unless#3;~%;x when#3;~%;x r.sav#0;~%;p ^require#1;%;p;1
-~r.sav := $(value ^require)
-^require = 
-$(call ^require,runtime)
-~when = !:P0 118 !1:P2!0119!0if $(word 1,$1) $(call ^d,!:P0 128 !1:P2!0129!0begin $(wordlist 2,99999999,$1))
-~unless = !:P0 180 !1:P2!0181!0if $(word 1,$1) !1:P2!0186!0nil $(call ^d,!:P0 188 !1:P2!0189!0begin $(wordlist 2,99999999,$1))
-$(call ^fset,^require,$(~r.sav))
+# Requires: 'runtime
+# Exports: unless#3;~%;x when#3;~%;x
+~when = !:P0 65 !1:P2!066!0if $(word 1,$1) $(call ^d,!:P0 75 !1:P2!076!0begin $(wordlist 2,99999999,$1))
+~unless = !:P0 127 !1:P2!0128!0if $(word 1,$1) !1:P2!0133!0nil $(call ^d,!:P0 135 !1:P2!0136!0begin $(wordlist 2,99999999,$1))
 
 endef
  
-define ///scam.min
+define [mod-'scam]
 # compiled from scam.scm
-# Requires: core repl build getopts gen runtime
-# Requires: scam-ct
-# Exports: main+opt-err+version#2;\.;p;\';1.2.2 usage)0]or]more
-$(call ^require,core)
-$(call ^require,repl)
-$(call ^require,build)
-$(call ^require,getopts)
-$(call ^require,gen)
-define ~usage
-$(and $(if $1,$(info scam: $(call ~vsprintf,$1,$(foreach N,2,$(^v)))))1,$(info Usage:
+# Requires: 'core 'repl 'build 'getopts 'compile 'gen 'io 'runtime
+# Uses: 'scam-ct
+# Exports: main+build-and-run)2 set-obj-dir)2 version#2;\.;p;\';1.3.4 perror)1]or]more usage-string#0;~%;p
+$(call ^require,'core)
 
-    scam [-i]              : enter interactive mode
-    scam -o EXE FILE...    : build an executable from SRC
-    scam -e EXPR           : eval and print value of expression
-    scam -r MAK            : load and execute executable file MAK
-    scam [-x] FILE ARG...  : compile and execute FILE
-    scam -v                : show version
+$(call ^require,'repl)
 
-Options:
+$(call ^require,'build)
 
-  --no-trace : Omit tracing functionality.  This will produce a slightly
-               smaller executable.
-)1,$(if $1,1))
+$(call ^require,'getopts)
+
+$(call ^require,'compile)
+
+$(call ^require,'gen)
+
+$(call ^require,'io)
+
+~usage-string := Usage:$'$'    scam [-i]                  Enter interactive mode$'    scam -o FILE [OPTS] FILE   Build an executable from SRC$'    scam -e EXPR               Eval and print value of expression$'    scam [-x] FILE ARGS...     Compile and execute FILE$'    scam -v / --version        Show version$'    scam -h                    Show this message$'$'Options:$'$'  --no-trace      Omit tracing functionality from the executable$'  --quiet         Do not display progress messages$'  --out-dir DIR   Specify directory for intermediate files$'  --              Stop processing options$'
+define ~perror
+$(and $(call ~fprintf,2,scam: $1
+,$(foreach N,2,$(^v)))1,1)
 endef
-~opt-err = $(call ~usage,Unrecognized command option '%s',$1)
-~main = $(call ^Y,$(call ~getopts,$1,-e= -h -i -r= -o= --symbols --boot --no-trace -x=... -v,$(value ~opt-err)),,,,,,,,,$`(if $`(call ~dict-get,v,$`(call ~nth,2,$`1)),$`(info SCAM version 1.2.2),$`(if $`(call ~dict-get,o,$`(call ~nth,2,$`1)),$`(call ~build,$`(call ~dict-get,o,$`(call ~nth,2,$`1)),$`(call ~nth,1,$`1),$`(call ~nth,2,$`1)),$`(if $`(call ~dict-get,h,$`(call ~nth,2,$`1)),$`(call ~usage),$`(if $`(call ~dict-get,e,$`(call ~nth,2,$`1)),$`(call ~repl-rep,$`(call ~dict-get,e,$`(call ~nth,2,$`1)),),$`(if $`(call ~dict-get,r,$`(call ~nth,2,$`1)),$`(eval include $`(call ~dict-get,r,$`(call ~nth,2,$`1))),$`(if $`(or $`(call ~dict-get,x,$`(call ~nth,2,$`1)),$`(call ~nth,1,$`1)),$`(if $`(call ~eq?,$`(call ~gen-global-name,main,),~main),$`(and $`(info scam: -x not supported; namespace collision)1,1),$`(and $`(call ~repl-file,$`(call ^u,$`(word 1,$`(or $`(call ~dict-get,x,$`(call ~nth,2,$`1)),$`(call ~nth,1,$`1)))))1,$`(call ~run-hooks,load)1,$`(call $`(call ~gen-global-name,main,),$`(wordlist 2,99999999,$`(or $`(call ~dict-get,x,$`(call ~nth,2,$`1)),$`(call ~nth,1,$`1)))))),$`(call ~repl))))))))
+~set-obj-dir = $(call ^set,~*obj-dir*,$(patsubst %//,%/,$(or $1,$(if $2,$(dir $2),.scam/))/))
+~build-and-run = $(call ~build,$(~*obj-dir*)$(basename $(notdir $(call ^u,$(word 1,$1)))),$(call ^u,$(word 1,$1)),$(call ~append,run!=$(call ^d,$(wordlist 2,99999999,$1)),$2))
+~main = $(call ^Y,$(call ~getopts,$1,-o= -e= -v --version -h -x -i --no-trace --quiet --out-dir= --no-syms --boot),,,,,,,,,$`(and $`(call ^set,~*is-quiet*,$`(call ~dict-get,quiet,$`1))1,$`(call ~set-obj-dir,$`(call ~promote,$`(lastword $`(call ~dict-get,out-dir,$`1))),$`(call ~promote,$`(lastword $`(call ~dict-get,o,$`1))))1,$`(if $`(call ~dict-get,!,$`1),$`(and $`(foreach e,$`(call ~dict-get,!,$`1),$`(call ^d,$`(if $`(filter !:GetoptsError0,$`(firstword $`(call ^u,$`e))),$`(call ~perror,'%s' is missing an argument,$`(call ^n,2,$`(call ^u,$`e))),$`(if $`(filter !:GetoptsError1,$`(firstword $`(call ^u,$`e))),$`(call ~perror,'%s' is not a recognized option,$`(call ^n,2,$`(call ^u,$`e))),$`(call ~perror,[internal error])))))1,$`(call ~perror,try 'scam -h' for help)),$`(if $`(call ~dict-get,h,$`1),$`(info $`(~usage-string)),$`(if $`(call ~dict-get,o,$`1),$`(if $`(word 2,$`(call ~dict-get,*,$`1)),$`(call ~perror,to many input files were given with `-o`),$`(call ~build,$`(call ~promote,$`(lastword $`(call ~dict-get,o,$`1))),$`(call ~dict-get,*,$`1),$`1)),$`(if $`(call ~dict-get,e,$`1),$`(and $`(foreach expr,$`(call ~dict-get,e,$`1),$`(call ^d,$`(call ~repl-rep,$`(call ^u,$`(expr)),)))1,),$`(if $`(or $`(call ~dict-get,v,$`1),$`(call ~dict-get,version,$`1)),$`(info SCAM version 1.3.4),$`(if $`(call ~dict-get,x,$`1),$`(if $`(if $`(call ~dict-get,*,$`1),,1),$`(call ~perror,no FILE was given with '-x'),$`(call ~build-and-run,$`(call ~dict-get,*,$`1),$`1)),$`(if $`(if $`(call ~dict-get,*,$`1),,1),$`(and $`(info SCAM v1.3.4 interactive mode. Type '?' for help.)1,$`(call ~repl)),$`(if $`(call ~dict-get,i,$`1),$`(call ~perror,extraneous arguments were provided with -i),$`(call ~build-and-run,$`(call ~dict-get,*,$`1),$`1)))))))))))
 
 endef
  
-define ///trace.min
-# compiled from trace.scm
-# Requires: runtime
-# Requires: scam-ct
-# Exports: trace_1 trace-dump)0 trace-rev+trace-check)0 *traces-active*#0;~%;p trace-instrument)3 trace-match-funcs+trace-info)1]or]2]or]3]or]4]or]5 trace-repeater)3 list-of)1]or]2 trace-n2a+trace-digits+*traces*#0;~%;p variables#2;\.;p;\<;filter-out`:IL1]~*trace-ignore-vars*`<]subst],1'|!p],1'|!Q!R],1:IL1|.VARIABLES *trace-ignore-vars*#0;~%;p .VARIABLES#0;%;p SCAM!TPRE#0;%;p SCAM!TTRACE#0;%;p
-~*trace-ignore-vars* := 
-~*traces* := 
-override SCAM_PRE := $(value SCAM_PRE)
-^K = $(eval ^K_$0:=$(subst ioooooooooo,oi,$(^K_$0:o%=io%)o))
-~trace-digits = $(if $(if $(findstring i,$1),,1),$(call ~trace-digits,i$1),$(if $(findstring ioooooooooo,$1),$(call ~trace-digits,$(subst ioooooooooo,oi,$1)),$(subst $  ,,$(wordlist $(words $(subst i, i,$1)),99,. . . . . . . . $(foreach d,$(subst i, i,$1),$(words $(subst i,,$(subst o, o,$d))))))))
-~trace-n2a = $(if $(if $(filter i%,$1),,1),$(call ~trace-n2a,i$1),$(if $(findstring ioooooooooo,$1),$(call ~trace-n2a,$(subst ioooooooooo,oi,$1)),$(subst 10,A,$(words $(subst i, i,$1)))!0$(subst $  ,,$(foreach d,$(subst i, i,$1),$(words $(subst i,,$(subst o, o,$d)))))))
-~list-of = $(if $(word $1,$2),$2,$(call ~list-of,$1,$2 x))
-~trace-repeater = $(subst NAME,$1,$(subst N-1,$(wordlist 2,99999999,$(call ~list-of,$(or $2,11))),$(if $3,$`(if $`(^X),$`(call if,,,$`(value NAME)),$`(if $`(foreach ^X,N-1,$`(if $`(NAME),)),)$`(foreach ^X,0,$`(NAME))),$`(NAME)$`(if $`(foreach ^xx,N-1,$`(NAME)),))))
-~trace-info = $(info TRACE: $1$2$3$4$5)
-~trace-match-funcs = $(foreach v,$(if $(findstring %,$1),$(filter $1,$(filter-out $(~*trace-ignore-vars*),$(subst %,(),$(.VARIABLES)))),$1),$(if $(filter recur%,$(flavor $v)),$v))
-~trace-instrument = $(if $(filter v,$1),$(and $(call ~trace-info,$2, [,$(flavor $2),] = ,$(value $2))1,$3),$(if $(filter c,$1),$`(^K)$3,$(if $(filter x% X%,$1),$(and $(call ~set-rglobal,$2~0~,$3)1,$(call ~trace-repeater,$2~0~,$(patsubst x%,%,$(subst X,x,$1)),$(filter X%,$1))),$(if $(filter p,$1),$(or $(SCAM_PRE),$(call ~trace-info,SCAM_PRE undefined; needed for ,$2,:p))$3,$(if $(filter t,$1),$(subst CODE,$3,$`(info --> ($`0$`(^ta)))$`(call ^tp,<-- $`0:,CODE)),$(and $(call ~trace-info,Unknown action: ',$1,')1,$3))))))
-~*traces-active* := 
-~trace-check = $(call ^set,~*traces-active*,$(strip $(~*traces-active*) $(foreach w,$(~*traces*),$(foreach name,$(call ~trace-match-funcs,$(firstword $(subst :, % ,$w))),$(foreach action,$(or $(wordlist 2,99999999,$(subst :, ,.$w)),t),$(if $(if $(filter $(name):$(patsubst x%,x,$(subst X,x,$(action))),$(~*traces-active*)),,1),$(and $(call ~set-rglobal,$(name),$(call ~trace-instrument,$(action),$(name),$(value $(name))))1,$(name):$(patsubst x%,x,$(subst X,x,$(action))))))))))
-~trace-rev = $(if $1,$(call ~trace-rev,$(wordlist 2,99999999,$1)) $(firstword $1))
-~trace-dump = $(and $(foreach s,$(foreach s,$(~*traces*),$(word 1,$(subst :, ,$s))),$(if $(if $(filter $s,$(foreach s,$(~*traces-active*),$(word 1,$(subst :, ,$s)))),,1),$(call ~trace-info,spec ',$s,' did not match any functions.)))1,$(if $(filter %c,$(~*traces-active*)),$(and $(call ~trace-info,function invocations)1,$(foreach r,$(call ~trace-rev,$(sort $(foreach V,$(filter ^K_%,$(.VARIABLES)),$(call ~trace-digits,$(value $V))$(patsubst ^K_%,::%,$V)))),$(call ~trace-info,$(subst ., ,$(word 1,$(subst ::, ,$r))), : ,$(word 2,$(subst ::, ,$r)))))))
-~trace = $(and $(call ^set,~*traces*,$(~*traces*) $1)1,$(call ~trace-check))
-~*trace-ignore-vars* := $(filter-out $(~*trace-ignore-vars*),$(subst %,(),$(.VARIABLES)))
-$(if $(call ~trace,$(SCAM_TRACE)),)
-$(if $(call ~add-hook,load,~trace-check),)
-$(if $(call ~add-hook,exit,~trace-dump),)
+define [mod-'string]
+# compiled from string.scm
+# Requires: 'core 'runtime
+# Uses: 'scam-ct
+# Exports: string-repeat_2 nwords)2 string-from-bytes_1 strings-from-bytes_1 string-to-bytes_1 string-lower_1 string-upper_1 string-slice_3 string-len_1 string-to-chars_1 vdemote+gen-polysub)2]or]3 all-bytes#0;~%;p
+$(call ^require,'core)
+
+~all-bytes :=           !+ $'                        !0   !1 " \# $` % & ' ( ) * + , - . / 0 1 2 3 4 5 6 7 8 9 : ; < = > ? @ A B C D E F G H I J K L M N O P Q R S T U V W X Y Z [ \ ] ^ _ ` a b c d e f g h i j k l m n o p q r s t u v w x y z { | } ~  Ä Å Ç É Ñ Ö Ü á à â ä ã å ç é è ê ë í ì î ï ñ ó ò ô ö õ ú ù û ü † ° ¢ £ § • ¶ ß ® © ™ ´ ¨ ≠ Æ Ø ∞ ± ≤ ≥ ¥ µ ∂ ∑ ∏ π ∫ ª º Ω æ ø ¿ ¡ ¬ √ ƒ ≈ ∆ « » …   À Ã Õ Œ œ – — “ ” ‘ ’ ÷ ◊ ÿ Ÿ ⁄ € ‹ › ﬁ ﬂ ‡ · ‚ „ ‰ Â Ê Á Ë È Í Î Ï Ì Ó Ô  Ò Ú Û Ù ı ˆ ˜ ¯ ˘ ˙ ˚ ¸ ˝ ˛ ˇ
+~gen-polysub = $(if $1,$(call ~gen-polysub,$(wordlist 2,99999999,$1),$(wordlist 2,99999999,$2),$`(subst $(subst $(if ,,,),$`&,$(subst $],$`],$(subst $[,$`[,$(subst $`,$`$`,$(call ^u,$(word 1,$1)))))),$(subst $(if ,,,),$`&,$(subst $],$`],$(subst $[,$`[,$(subst $`,$`$`,$(call ^u,$(word 1,$2)))))),$(or $3,$`1))),$3)
+~vdemote = $(subst !0, ,$(call ^d,$1))
+~gen-split = $(call ~gen-polysub,$(call ~vdemote,$1),$(patsubst %,$2,$(call ~vdemote,$1)))
+$(call ^fset,~split-ascii,$(call ~gen-split,$(wordlist 1,127,$(~all-bytes)),%!0))
+$(call ^fset,~split-utf8-esc,$(call ~gen-split,$(wordlist 194,244,$(~all-bytes)),%!0))
+$(call ^fset,~split-utf8-cont,$(call ~gen-split,$(wordlist 128,191,$(~all-bytes)),!1.%!0))
+~utf8-group-if = $(if $(word 2,$1),$(subst !., ,$(subst $  !.,,$(call ~split-utf8-cont,$1))),$1)
+~string-to-chars = $(filter %,$(call ~split-ascii,$(call ~utf8-group-if,$(call ~split-utf8-esc,$(subst $ 	,!+,$(subst $  ,!0,$(subst !,!1,$1)))))))
+~string-len = $(words $(call ~string-to-chars,$1))
+~string-slice = $(call ~promote,$(subst $  ,,$(wordlist $1,$2,$(call ~string-to-chars,$3))))
+$(call ^fset,~string-upper,$(call ~gen-polysub,$(wordlist 97,122,$(~all-bytes)),$(wordlist 65,90,$(~all-bytes))))
+$(call ^fset,~string-lower,$(call ~gen-polysub,$(wordlist 65,90,$(~all-bytes)),$(wordlist 97,122,$(~all-bytes))))
+~string-to-bytes = $(and $(if $(if $(value ~s2b-sub),,1),$(and $(call ^fset,~num-enc,$(call ~gen-polysub,/ 0 1 2 3 4 5 6 7 8 9 !1/1 !1/0,/@ /0 /1 /2 /3 /4 /5 /6 /7 /8 /9 !11 !10))1,$(call ^fset,~s2b-sub,$(call ~gen-polysub,$(call ~vdemote,$(call ~num-enc,$(~all-bytes))),$(addsuffix !0,$(call ~indices-a,$(words $(~all-bytes))))))))1,$(filter %,$(call ~s2b-sub,$(call ~num-enc,$(call ^d,$1)))))
+~strings-from-bytes = $(foreach n,$1,$(if $(filter 0,$n),!.,$(word $n,$(~all-bytes))))
+~string-from-bytes = $(call ~concat-vec,$(call ~strings-from-bytes,$1))
+~nwords = $(if $(word $1,$2),$(wordlist 1,$1,$2),$(call ~nwords,$1,$2 $2 $2))
+~string-repeat = $(subst .,$1,$(subst $  ,,$(if $(filter-out -%,$(subst 0,,$2)),$(call ~nwords,$2,. . .))))
 
 endef
-$(eval $(value ///runtime.min))
-$(call ^start,///scam,~main,$(SCAM_ARGS))
+ 
+define [mod-'trace]
+# compiled from trace.scm
+# Requires: 'runtime
+# Uses: 'scam-ct
+# Exports: untrace-ext+trace-dump+trace-rev+trace-ext)2 known-names#2;\.;p;\<;filter-out`']:!p`<]subst],1'|:],1'|}:],1:IL1|~*trace-ids* trace-id)1]or]2 *trace-ids*#0;~%;p trace-match)2 trace-body)4 count-var&p;1;\.;\:IL6`']!HK-`[]1]0`']!I save-var&p;1;\.;\:IL6`']!HS-`[]1]0`']!I trace-words)1]or]2 trace-digits+zero#2;\.;p;\';/////// filtersub&p;3;\.;\<;patsubst`[]1]0`[]2]0`<]filter],1[|1|0],1[|3|0 trace-info)1]or]2]or]3]or]4
+~trace-info = $(info TRACE: $1$2$3$4)
+~trace-digits = $(if $(findstring /1111111111,$1),$(call ~trace-digits,$(subst /1111111111,1/,$1)),$(subst !:,,$(subst :!,0!,$(subst :0,::,$(subst :00,:::,$(subst :0000,:::::,$(subst $  ,,!:$(foreach d,/$(subst /, /,$1),$(words $(subst /,,$(subst 1, 1,$d))))!:)))))))
+~trace-words = $(if $(word $1,$2),$2,$(call ~trace-words,$1,1 $2))
+~trace-body = $(subst :D,$4,$(subst :N,$2,$(subst :C,$`(call [S-$3],$`1,$`2,$`3,$`4,$`5,$`6,$`7,$`8,$`9),$(subst :E,$`(eval ^TI:=$`$`(^TI) ):C$`(eval ^TI:=$`$`(subst x ,,x$`$`(^TI))),$(subst :I,info $`(^TI),$(if $(filter c,$1),$(and $(call ~set-global,[K-$3],$(or $(value [K-$3]),///////))1,$`(eval [K-$3]:=$`(subst /1111111111,1/,$`([K-$3])1)):D),$(if $(filter p%,$1),$(subst :,:$` ,$(call ~promote,$(patsubst p%,%,$1))):D,$(if $(filter t f,$1),$(if $(or $(filter f,$1),$(filter ^ta ^f ^tc ^tp ^n,$2)),$`(:I--> :N):E$`(:I<-- :N),$`(:I--> (:N$`(^ta)))$`(call ^tp,$`(^TI)<-- :N:,:E)),$(if $(filter x%,$1),$`(foreach ^X,1,:C)$`(if $`(^X),,$`(if $`(foreach ^X,$(wordlist 2,99999999,$(call ~trace-words,$(or $(patsubst x%,%,$1),11),1)),$`(if :C,)),)),$(error TRACE: Unknown mode: '$1'))))))))))
+~trace-match = $(filter-out $(foreach p,^% ~% ~trace%,$(if $(filter-out $p,$1),$p)),$(filter $1,$2))
+~*trace-ids* := 
+~trace-id = $(or $(patsubst $1:%,%,$(filter $1:%,$(~*trace-ids*))),$(if $2,$(call ^set,~*trace-ids*,$(~*trace-ids*) $1:$(words $(~*trace-ids*)),$(words $(~*trace-ids*)))))
+define ~trace-ext
+$(filter %,$(foreach _-spec,$(filter-out %:v %:-,$1),$(foreach _-name,$(foreach v,$(call ~trace-match,$(filter-out :%,$(subst :, :,$(_-spec))),$(filter-out $2 [% ~trace ~untrace ~trace-ext ~untrace-ext ^Y  $(patsubst %:-,%,$(filter %:-,$1)),$(.VARIABLES))),$(if $(filter filerec%,$(origin $v)$(flavor $v)),$v)),$(foreach id,$(call ~trace-id,$(_-name),1),$(and $(and $(if $(filter u%,$(origin [S-$(id)])),$(call ~set-rglobal,[S-$(id)],$(value $(_-name))))1,$(if $(filter %:v,$1),$(call ~trace-info,[,$(subst $  ,,$(wordlist 2,999,$(subst :,: ,$(_-spec)))),] ,$(_-name)))1,$(call ~set-rglobal,$(_-name),$(call ~trace-body,$(or $(subst $  ,,$(wordlist 2,999,$(subst :,: ,$(_-spec)))),t),$(subst #,$`",$(_-name)),$(id),$(value [S-$(id)]))))1,$(_-name))))))
+endef
+~trace-rev = $(if $1,$(call ~trace-rev,$(wordlist 2,99999,$1)) $(word 1,$1))
+~trace-dump = $(foreach line,$(sort $(foreach name,$1,$(foreach k,$(value [K-$(call ~trace-id,$(name))]),$(if $(findstring 1,$k),$(and $(call ~set-global,[K-$(call ~trace-id,$(name))],///////)1,$(call ^d,$(subst :, ,$(call ~trace-digits,$k)) $(name))))))),$(call ^d,$(call ~trace-info,$(call ^u,$(line)))))
+~untrace-ext = $(call ~trace-dump,$(foreach name,$(filter $1,$(filter-out :%,$(subst :, :,$(~*trace-ids*)))),$(foreach id,$(call ~trace-id,$(name)),$(and $(call ~set-rglobal,$(name),$(value [S-$(id)]))1,$(name)))))
+$(if $(call ~at-exit,$`(call ~trace-dump,$`(filter-out :%,$`(subst :, :,$`(~*trace-ids*))))),)
+
+endef
+ 
+define [mod-'utf8]
+# compiled from utf8.scm
+# Requires: 'core 'num 'runtime
+# Uses: 'scam-ct
+# Exports: utf8-decode_1 bin-to-dec+b2d-loop+byte-to-bin+byte-to-bin-a#0;~%;p plex2+utf8-encode_1 utf-seq)2
+$(call ^require,'core)
+
+$(call ^require,'num)
+
+~utf-seq = $(if $2,$(call ^Y,$(call ~div-rem,$1,64),$(wordlist 2,99999999,$2),$(word 1,$2),,,,,,,$`(call ~append,$`(call ~utf-seq,$`(word 1,$`1),$`2),$`(call ~num+,$`3,$`(word 2,$`1)))))
+~utf8-encode = $(foreach c,$1,$(if $(filter 1,$(call ~num-cmp,128,$c)),$c,$(if $(filter 1,$(call ~num-cmp,2048,$c)),$(call ~utf-seq,$c,128 192),$(if $(filter 1,$(call ~num-cmp,65536,$c)),$(call ~utf-seq,$c,128 128 224),$(if $(filter 1,$(call ~num-cmp,1114112,$c)),$(call ~utf-seq,$c,128 128 128 240),?)))))
+~plex2 = $(foreach a,$1,$(foreach b,$1,$a$b))
+~byte-to-bin-a := $(wordlist 2,99999999,$(call ~plex2,$(call ~plex2,00 01 10 11)))
+~byte-to-bin = $(if $(subst 0,,$1),$(word $1,$(~byte-to-bin-a)))
+~b2d-loop = $(if $(word 2,$1),$(call ~num+,$(lastword $1),$(call ~num*,2,$(call ~b2d-loop,$(call ~butlast,$1)))),$1)
+~bin-to-dec = $(call ~b2d-loop,$(subst 0,0 ,$(subst 1,1 ,$1)))
+~utf8-decode = $(foreach num,$(subst b 10,,$(foreach dec,$1,$(or $(filter 1%,$(call ~byte-to-bin,$(dec))b),$(dec)))),$(if $(filter %b,$(num)),$(call ~bin-to-dec,$(or $(subst $  ,,$(wordlist 2,99999999,$(subst 0,0 ,$(subst b,,$(num))))),0)),$(num)))
+
+endef
+$(eval $(value [mod-'runtime]))
+$(call ^start,'scam,~main,$(value SCAM_ARGS))

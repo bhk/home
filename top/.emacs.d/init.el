@@ -102,6 +102,9 @@
   (let ((localbin (concat (getenv "HOME") "/local/bin")))
     (add-to-list 'exec-path localbin))
 
+  ;; Hunspell from MacPorts lives here...
+  (add-to-list 'exec-path "/usr/local/bin")
+
   ;; If running a non-installed MacOS emacs, ensure that its bin directories
   ;; come first in the PATH, so subshells will get the appropriate
   ;; emacsclient.
@@ -574,11 +577,17 @@ names.  Customize with `cwdtrack-regexp'."
 ;; (global-set-key "\C-h" 'backward-delete-char))
 ;; (global-set-key [deletechar] 'backward-delete-char)
 
-
 ;; Adjust font size for entire frame
 (global-set-key "\M-=" (lambda () (interactive) (my-zoom-frame 1)))
 (global-set-key "\M--" (lambda () (interactive) (my-zoom-frame -1)))
 (global-set-key "\M-0" (lambda () (interactive) (my-zoom-frame 0)))
+
+;; SCAM syntax
+(put 'let-global 'scheme-indent-function 1)
+(put 'let& 'scheme-indent-function 1)
+(put 'data 'scheme-indent-function 1)
+(put 'for 'scheme-indent-function 1)
+(put 'foreach 'scheme-indent-function 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Local definitions
