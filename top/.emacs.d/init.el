@@ -587,6 +587,7 @@ names.  Customize with `cwdtrack-regexp'."
 (put 'let& 'scheme-indent-function 1)
 (put 'data 'scheme-indent-function 1)
 (put 'for 'scheme-indent-function 1)
+(put 'concat-for 'scheme-indent-function 1)
 (put 'foreach 'scheme-indent-function 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
