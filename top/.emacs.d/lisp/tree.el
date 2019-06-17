@@ -465,7 +465,7 @@ top is unset, the user will be queried to change the current top directory."
   (let* ((top (tree-get-top arg "Top dir for grep: "))
 	 (expr (read-string (concat "Grep (in " top ") : ")))
 	 (listing (tree-make-listing (tree-files top))))
-    (funcall grepmode (concat "xargs -0 grep -n " expr " < " listing))))
+    (funcall grepmode (concat "( xargs -0 grep -n " expr " ) < " listing))))
 
 (defun select (pred lst)
   (if lst
@@ -483,7 +483,7 @@ top is unset, the user will be queried to change the current top directory."
          (not-header (lambda (filename) (not (string-match "\\.h$" filename))))
          (hdr-files (select not-header (tree-files top)))
          (listing (tree-make-listing hdr-files)))
-    (funcall grepmode (concat "xargs -0 grep -n " expr " < " listing))))
+    (funcall grepmode (concat "( xargs -0 grep -n " expr " ) < " listing))))
 
 (defun tree-find-file (arg)
   "Find file in current tree.  If ARG is given, selects `tree-top'."

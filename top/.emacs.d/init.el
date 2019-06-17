@@ -508,6 +508,8 @@ names.  Customize with `cwdtrack-regexp'."
 
 (add-hook 'artist-mode-init-hook 'my-artist-mode-hook)
 
+(add-hook 'grep-mode-hook (lambda () (setq truncate-lines t)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Bindings
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
