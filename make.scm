@@ -137,7 +137,7 @@ Modify the `linked-dirs` variable in make.scm to change this.
             "X: ; @true " (lambda () (build "X")) "\n"))
 
   (foreach r rules
-           (eval (subst "X" r phony-rule)))
+           (native-eval (subst "X" r phony-rule)))
 
   ;; Rebuild makefile from this source file when necessary
-  (eval "Makefile: make.scm; @top/local/bin/scam -o $@ $< && rm *.min"))
+  (native-eval "Makefile: make.scm; @top/local/bin/scam -o $@ $<"))
