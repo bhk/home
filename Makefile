@@ -1,9 +1,9 @@
 #!/bin/bash
 :; for v in "${@//!/!1}" ; do v=${v// /!0} ; v=${v//	/!+}; a[++n]=${v:-!.} ; done ; LC_ALL=C SCAM_ARGS=${a[*]} exec make -Rr --no-print-directory -f"$0" 9>&1
-SCAM_MAIN := ./.scam/485d4eb883a2f366/make.scm:'main
-^uid := b2f923aa4d148147
+SCAM_MAIN := ./.scam/45d2c64aa756c620/make.scm:'main
+^uid := cf9ee294a928fc53
 
-define [mod-./.scam/485d4eb883a2f366/make.scm]
+define [mod-./.scam/45d2c64aa756c620/make.scm]
 $(call ^R,core)
 'top := top
 'linked-dirs := .emacs.d .config
@@ -14,7 +14,7 @@ $(call ^R,core)
 'help-raw := Usage:$'   make help         Display this message$'   make install      Install symbolic links$'   make uninstall    Remove symbolic links$'$'The `top` directory contains an image of files to be propagated to your$'$`HOME directory.$'$'Instead of copying the files, `make install` creates symbolic links so that$'this repository can be easily updated using git.  `make install` avoids$'removing files or links that already exist; you may have to manually remove$'some files in order to deploy the ones in this project.  Also, you can$'manually replace a symbolic link with a copy in order to maintain the local$'$`HOME directory in a state that diverges from the project (e.g. work$'machines vs. personal machines).$'$'In some cases, symbolic links are created to directories rather than$'individual files.  This can make it easier to track files that are added to$'those directories and propagate changes back into this project.  Linked$'directories are: LDIRS$'$'Modify the `linked-dirs` variable in make.scm to change this.$'
 'install-file = $(and $(if $(if $(wildcard $(dir $1)),,1),$(and $(info Creating directory: $(dir $1))1,$(shell mkdir -p $(dir $1))))1,$(if $(wildcard $1),$(if $(call 'is-symlink?,$1),$(info Skipping $2 (already a symlink)),$(info AVOIDING $2 (remove pre-existing file first))),$(and $(shell ln -fs $(call 'relpath,$(dir $1),$('top))/$2 $1)1,$(info Installed $2))))
 'uninstall-file = $(if $(call 'is-symlink?,$1),$(and $(info Removing $1)1,$(shell rm $1)),$(if $(wildcard $1),$(info LEAVING $1 (not a symlink)),$(info Missing $1)))
-'visit-files = $(foreach ;,$(call `append,$(filter-out $(addsuffix /%,$('linked-dirs)),$(patsubst $('top)/%,%,$(call 'find-files,$('top)))),$('linked-dirs)),$(call ^Y,$('HOME)/$;,$;,,,,,,,,$1))
+'visit-files = $(foreach ;,$(call `append,$(filter-out $(addsuffix /%,$('linked-dirs)),$(patsubst $('top)/%,%,$(call 'find-files,$('top)))),$('linked-dirs)),$(call ^Y,$(HOME)/$;,$;,,,,,,,,$1))
 'rules := help show install uninstall
 define 'build
 $(if $(call `eq?,$1,help),$(info $(subst LDIRS,$(foreach ;,$('linked-dirs),$(subst D,$;,
