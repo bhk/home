@@ -1,9 +1,9 @@
 #!/bin/bash
 :; for v in "${@//!/!1}" ; do v=${v// /!0} ; v=${v//	/!+}; a[++n]=${v:-!.} ; done ; LC_ALL=C SCAM_ARGS=${a[*]} exec make -Rr --no-print-directory -f"$0" 9>&1
-SCAM_MAIN := ./.scam/45d2c64aa756c620/make.scm:'main
+SCAM_MAIN := ./.scam/9d4456172c25d542/make.scm 'main
 ^uid := cf9ee294a928fc53
 
-define [mod-./.scam/45d2c64aa756c620/make.scm]
+define [mod-./.scam/9d4456172c25d542/make.scm]
 $(call ^R,core)
 'top := top
 'linked-dirs := .emacs.d .config
@@ -83,8 +83,8 @@ endef
 ^tags := 
 ^at = $(call ^set,^tags,$(^tags) $(filter-out $(^tags),$1))
 `*required* := 
-^load = $(and $(if $(if $(filter-out u%,$(flavor [mod-$1])),1),$(eval $(value [mod-$1])),$(eval include $(value SCAM_DIR)$1.o))1,$1)
-^R = $(and $(or $(filter $1,$(`*required*)),$(and $(call ^set,`*required*,$(`*required*) $1)1,$(call ^load,$1)))1,)
+^load = $(and $(if $(if $(filter-out u%,$(flavor [mod-$1])),1),$(eval $(value [mod-$1])),$(eval include $(subst $ 	,\	,$(subst $  ,\ ,$(value SCAM_DIR)$1.o))))1,$1)
+^R = $(and $(or $(filter $(call ^d,$1),$(`*required*)),$(and $(call ^set,`*required*,$(`*required*) $(call ^d,$1))1,$(call ^load,$1)))1,)
 `trace-info = $(info TRACE: $1$2$3$4)
 `trace-digits = $(if $(findstring /1111111111,$1),$(call `trace-digits,$(subst /1111111111,1/,$1)),$(subst !:,,$(subst :!,0!,$(subst :0,::,$(subst :00,:::,$(subst :0000,:::::,$(subst $  ,,!:$(foreach ;,/$(subst /, /,$1),$(words $(subst /,,$(subst 1, 1,$;))))!:)))))))
 `trace-words = $(if $(word $1,$2),$2,$(call `trace-words,$1,1 $2))
@@ -99,7 +99,7 @@ endef
 `trace-dump = $(foreach ;,$(sort $(foreach ;,$1,$(foreach ;;,$(value [K-$(call `trace-id,$;)]),$(if $(findstring 1,$(;;)),$(and $(call ^set,[K-$(call `trace-id,$;)],///////,)1,$(call ^d,$(subst :, ,$(call `trace-digits,$(;;))) $;)))))),$(call ^d,$(call `trace-info,$(call ^u,$;))))
 `untrace = $(and $(call `trace-dump,$(foreach ;,$(filter $1,$(filter-out :%,$(subst :, :,$(`*trace-ids*)))),$(foreach ;;,$(call `trace-id,$;),$(and $(call ^fset,$;,$(value [S-$(;;)]),)1,$;))))1,$2)
 `do-not-trace = $(call ^set,`*do-not-trace*,$(`*do-not-trace*) $1)
-`start-trace = $(call `trace,$(value $(if $(filter scam,$1),_)SCAM_TRACE))
+`start-trace = $(call `trace,$(value SCAM_TRACE))
 SHELL := /bin/bash
 `*atexits* := 
 `at-exit = $(if $(and $2,$(findstring $  $(call ^d,$1) , $(`*atexits*) )),,$(call ^set,`*atexits*,$(call ^d,$1) $(`*atexits*)))
@@ -112,7 +112,7 @@ $(and $(call `start-trace,$1)1,$(call `do-not-trace,^R ^load)1,$(call ^R,$1)1,$(
 endef
 $(if $(call `do-not-trace,^start `start-trace),)
 $(if $(call `at-exit,$`(call `trace-dump,$`(filter-out :%,$`(subst :, :,$`(`*trace-ids*))))),)
-$(if $(call ^start,$(word 1,$(subst :, ,$(SCAM_MAIN))),$(word 2,$(subst :, ,$(SCAM_MAIN))),$(value SCAM_ARGS)),)
+$(if $(call ^start,$(call ^u,$(word 1,$(SCAM_MAIN))),$(word 2,$(SCAM_MAIN)),$(value SCAM_ARGS)),)
 
 endef
 
