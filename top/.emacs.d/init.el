@@ -479,7 +479,7 @@ names.  Customize with `cwdtrack-regexp'."
 ;; Delete trailing whitespace from lines before a file is saved.
 ;; (unless we're editing a makefile)
 (defun clean-whitespace ()
-  (unless (string-match "^make" (symbol-name major-mode))
+  (unless (string-match "^[Mm]ake" (symbol-name major-mode))
     (delete-trailing-whitespace)))
 
 (add-hook 'before-save-hook 'clean-whitespace)
