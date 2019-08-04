@@ -104,8 +104,6 @@ Modify the `linked-dirs` variable in make.scm to change this.
           (print "Missing " dest))))
 
 (define (visit-files action)
-  (declare HOME)
-
   (define `(not-under dirs files)
     (filter-out (addsuffix "/%" dirs) files))
 
@@ -117,7 +115,7 @@ Modify the `linked-dirs` variable in make.scm to change this.
                          linked-dirs))
 
   (foreach f links
-           (action (concat HOME "/" f) f)))
+           (action (concat (native-var "HOME") "/" f) f)))
 
 
 (define rules "help show install uninstall")
