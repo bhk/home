@@ -17,6 +17,7 @@ if [[ -z "$BASHRC_ONCE" ]] ; then
     if [[ "${OSTYPE:0:6}" = darwin ]]; then
         PATH="/usr/local/bin:$PATH"  # MacPorts
     fi
+    PATH="$HOME/.cargo/bin:$PATH"
     PATH="$HOME/local/bin:$PATH"
 
     # host-specific login settings

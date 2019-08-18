@@ -421,22 +421,27 @@ names.  Customize with `cwdtrack-regexp'."
 (require 'font-lock)
 (global-font-lock-mode t)
 
+(autoload 'rust-mode "rust-mode" nil t)
+(autoload 'lua-mode "lua-mode.el" nil t)
+(autoload 'ruby-mode "ruby-mode.el" nil t)
+
 (setq auto-mode-alist
-      (append '(("\\.[ch]\\'" . c++-mode)
-		("\\.bid\\'" . c++-mode)
-                ("\\.min\\'" . makefile-gmake-mode)
-                ("\\.mak\\'" . makefile-gmake-mode)
-                ("\\.mk\\'" . makefile-gmake-mode)
-                ("[Mm]akefile\\'" . makefile-gmake-mode)
-                ("scam\\'" . makefile-gmake-mode)
-                ("SCons[criptu]+t\\'" . python-mode)
-                ("Package\\'" . makefile-gmake-mode)
-                ("^\\.config\\'" . makefile-gmake-mode)
-                ("\\.lua\\'" . lua-mode)
-                ("^pak\\'" . lua-mode)
-                ("\\.cif\\'" . lua-mode)
-                ("\\.rb\\'" . ruby-mode))
-              auto-mode-alist))
+      (append
+       '(("\\.rs\\'" . rust-mode)
+         ("\\.[ch]\\'" . c++-mode)
+         ("\\.bid\\'" . c++-mode)
+         ("\\.min\\'" . makefile-gmake-mode)
+         ("\\.mak\\'" . makefile-gmake-mode)
+         ("\\.mk\\'" . makefile-gmake-mode)
+         ("[Mm]akefile\\'" . makefile-gmake-mode)
+         ("scam\\'" . makefile-gmake-mode)
+         ("SCons[criptu]+t\\'" . python-mode)
+         ("Package\\'" . makefile-gmake-mode)
+         ("^\\.config\\'" . makefile-gmake-mode)
+         ("\\.lua\\'" . lua-mode)
+         ("^pak\\'" . lua-mode)
+         ("\\.rb\\'" . ruby-mode))
+       auto-mode-alist))
 
 ;; Spell checking
 
@@ -472,9 +477,6 @@ names.  Customize with `cwdtrack-regexp'."
 
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 (add-hook 'shell-mode-hook 'accept-process-output)
-
-(autoload 'lua-mode "lua-mode.el" "" t)
-(autoload 'ruby-mode "ruby-mode.el" "" t)
 
 ;; Delete trailing whitespace from lines before a file is saved.
 ;; (unless we're editing a makefile)
