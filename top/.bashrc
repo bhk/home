@@ -15,7 +15,9 @@ if [[ -z "$BASHRC_ONCE" ]] ; then
 
     export P4CONFIG=.p4
     if [[ "${OSTYPE:0:6}" = darwin ]]; then
-        PATH="/usr/local/bin:$PATH"  # MacPorts
+        # /usr/local/bin = MacPorts
+        PATH="/usr/local/bin:$HOME/local/bin/mac:$PATH"
+        export BASH_SILENCE_DEPRECATION_WARNING=1
     fi
     PATH="$HOME/.cargo/bin:$PATH"
     PATH="$HOME/local/bin:$PATH"
