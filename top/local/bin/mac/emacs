@@ -1,3 +1,22 @@
-#!/bin/sh
+#!/bin/bash
+#
+# Run emacsformacosx from command line
+#
 
-/Applications/Emacs.app/Contents/MacOS/Emacs -nw "$@"
+emacsDir="/Applications/Emacs.app/Contents/MacOS"
+
+# Use "+nw" to avoid automatic "-nw"
+arg="-nw"
+if [[ "$1" == "+nw" ]] ; then
+    arg=""
+    shift
+fi
+
+# Workaround for arm64; the `Emacs` ruby script gives up but Rosetta works
+suffix=""
+if [[ $(uname -m) == "arm64" ]] ; then
+    suffix="-x86_64-10_14"
+    export PATH=${PATH}:${emacsDir}/bin${suffix}:${emacsDir}/libexec${suffix}
+fi
+
+exec ${emacsDir}/Emacs${suffix} $arg "$@"
