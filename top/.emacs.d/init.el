@@ -91,10 +91,10 @@
 ;; $INSIDE_EMACS in interactive shells.
 
 (when (fboundp 'window-system)
-  ;; In Mac/Win GUI emacs, the environment has not been initialized by
-  ;; .bashrc, so we need to ensure that .bashrc will be run when a
-  ;; subcommand (e.g. make spawned from M-x compile) is executed.
-  (setenv "BASH_ENV" (concat (getenv "HOME") "/.bashrc"))
+  ;; In Mac/Win GUI emacs, the environment has not been initialized by a
+  ;; login shell, so we need to ensure that .bash_profile and/or .bashrc
+  ;; will be run when a subcommand is run via `M-x compile`.
+  (setenv "BASH_ENV" (concat (getenv "HOME") "/.bash_profile"))
 
   ;; ...and for the same reason, ~/local/bin is not in exec-path, which will
   ;; cause (executable-find) not to find `aspell`.  This unavoidably
@@ -427,7 +427,8 @@ names.  Customize with `cwdtrack-regexp'."
 
 (setq auto-mode-alist
       (append
-       '(("\\.rs\\'" . rust-mode)
+       '(("\\.pl\\'" . prolog-mode)
+         ("\\.rs\\'" . rust-mode)
          ("\\.[ch]\\'" . c++-mode)
          ("\\.bid\\'" . c++-mode)
          ("\\.min\\'" . makefile-gmake-mode)
@@ -492,7 +493,7 @@ names.  Customize with `cwdtrack-regexp'."
 (defun my-c-mode-common-hook ()
   (setq tab-width 8
         indent-tabs-mode nil        ; Use spaces instead of tabs
-        c-basic-offset 2)           ; mother of all indentation parameters
+        c-basic-offset 3)           ; mother of all indentation parameters
   (font-lock-mode 1)
   (define-key c-mode-base-map "\C-m" 'newline-and-indent))
 
@@ -592,6 +593,7 @@ names.  Customize with `cwdtrack-regexp'."
 (put 'data 'scheme-indent-function 1)
 (put 'for 'scheme-indent-function 1)
 (put 'concat-for 'scheme-indent-function 1)
+(put 'append-for 'scheme-indent-function 1)
 (put 'foreach 'scheme-indent-function 1)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
