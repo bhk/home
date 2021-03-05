@@ -1,6 +1,7 @@
 [user]
 	name = Brian Kelley
 	useConfigOnly = true
+	email = bhk@bhk.com
 [color]
 	ui = auto
 [alias]
@@ -18,3 +19,5 @@
 
 [branch]
 	autosetuprebase = always
+[credential]
+	helper = store
