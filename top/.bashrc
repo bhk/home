@@ -1,8 +1,6 @@
 # .bashrc
 
-# Avoid init files other than ~/.bashrc.  When there is more than one, the
-# rules for which one is used and when are complicated and inconsistently
-# supported across environments.
+# See ~/.home/shells.txt
 
 #--------------------------------
 # Login Settings
