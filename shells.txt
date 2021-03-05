@@ -1,0 +1,38 @@
+# Shells
+
+## An all-in-one .bash_profile/.bashrc
+
+Bash claims that .bash_profile is executed for "login" shells, and .bashrc
+for all "interactive" shells.  The thinking goes that every shell has an
+ancestor "login" shell from which it inherits its environment, so we only
+need to set environment variables in the "profile", while ".bashrc" covers
+the non-inherited (shell-local) settings important mainly for the
+command-line UI.
+
+However, in modern environments, many programs execute without inheriting
+from a shell, and some of these (e.g. GUI emacs) launch sub-shells, so we
+can no longer rely on the "profile" environment settings being present,
+even when we are in a shell.
+
+Our solution is to consolidate the environment and shell-local settings into
+one file (.bashrc).  It will set environment variables if they have not
+already been set.  It will set interactive settings when it is launching an
+interactive shell.
+
+Our `.bash_profile` then reduces to one line -- `. .bashrc` -- so whether
+`.bash_profile` *or* `.bashrc` is invoked, our shell should have the
+appropriate settings.
+
+## Emacs
+
+In Emacs, we set the BASH_ENV environment variable to `.bash_profile` to
+ensure that commands invoked via `M-x compile` will execute in the
+environment of our .bashrc.  Otherwise, Emacs will invoke a shell without
+any of our environment settings.  Why `.bash_profile`?  While we intend
+.bashrc to contain all environment settings, sometimes our .bash_profile is
+modified without our knowledge -- e.g. by homebrew installations.  This
+helps ensure that `compile` invocations will have the same environment as
+terminal shells.
+
+`M-x shell`, on the other hand, launches an interactive shell, which sources
+.bashrc, no matter what BASH_ENV is set to.

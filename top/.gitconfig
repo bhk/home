@@ -9,11 +9,12 @@
 	last = log -1 HEAD
 	st = status
 	co = checkout
-	lg = log --oneline --graph -10
-	rlg = log --oneline --reverse -10
+	lg = log --oneline --reverse -10
+	lgn = log --oneline --reverse -10 --name-status
+	lgg = log --oneline --graph -10
 	dc = diff --cached
-        ds = diff --stat
-        dsc = diff --stat --cached
+	ds = diff --stat
+	dsc = diff --stat --cached
 [push]
 	default = simple
 
