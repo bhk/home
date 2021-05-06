@@ -3,6 +3,108 @@ Compilation started at Sat Jul  8 15:19:25
 
 See also compilation.txt, "example file" in C-h C-v compilation-error-regexp-alist
 
+----------------------------------------------------------------
+-- Node.js
+----------------------------------------------------------------
+
+Node seems to always prefix user files with "/".  The initial line is
+usually not of interest, but not easy to skip with this regexp-alist.
+
+
+### Syntax Errors
+
+file:///Users/bhk/foo.js:1125
+);
+^
+
+SyntaxError: missing ) after argument list
+    at Loader.moduleStrategy (node:internal/modules/esm/translators:147:18)
+    at async link (node:internal/modules/esm/module_job:48:21)
+
+
+### Exceptions from ES6 modules
+
+node:internal/process/esm_loader:74
+    internalBinding('errors').triggerUncaughtException(
+                              ^
+
+Error: values not equal
+  A: 1
+  B: 2
+
+    at Object.tests.checkPlayAxis (file:///Users/bhk/foo.js:1106:5)
+    at file:///Users/bhk/foo.js:1113:15
+
+
+### Uncaught exceptions
+
+/Users/bkelley/p/dev/js/myassert_q.js:3
+)
+^
+
+node.js:134
+        throw e; // process.nextTick error, or 'error' event on first tick
+        ^
+ReferenceError: blah is not defined
+    at /Users/bkelley/foo.js:4:
+    at Object.CALL_NON_FUNCTION (native)
+    at Object.<anonymous> (/Users/bkelley/foo.js:4:1)
+    at Module._compile (module.js:402:26)
+
+
+----------------------------------------------------------------
+-- Terser (JS minifier)
+----------------------------------------------------------------
+
+Parse error at .out/game.min.js.stripped:681,10
+    await import('fs');
+          ^
+
+----------------------------------------------------------------
+-- gcc / g++
+----------------------------------------------------------------
+
+game.cpp:68:1: error: unknown type name 'a'
+a
+^
+1 error generated.
+
+In file included from kprocess.c:3:0:
+foo.h: In function 'GCCIsAMovingTarget':
+foo.h:29:27: error: GCC version 4.6 now uses this format.
+
+----------------------------------------------------------------
+-- GNU Emacs
+----------------------------------------------------------------
+
+tree.el:1:1:Error: Invalid read syntax: ")"
+tree_q.el:5:1:Warning: cl package required at runtime
+
+
+----------------------------------------------------------------
+-- SCAM
+----------------------------------------------------------------
+
+euler.scm:6:1: unmatched ")"
+)
+^
+
+----------------------------------------------------------------
+-- Lua
+----------------------------------------------------------------
+
+/Users/bkelley/p4/apiOne/main/build/tools/Darwin/lua/LUA: object_q.lua:15: assertion failed!
+stack traceback:
+	[C]: in function 'assert'
+	object_q.lua:15: in function 'fn'
+	object_q.lua:74: in main chunk
+	[C]: ?
+
+
+----------------------------------------------------------------
+-- Previously-supported...
+----------------------------------------------------------------
+
 
 Assertion failed: (17 == itest_empty(o)), function mainInThread, file kserver_q.c, line 58.
 
@@ -25,8 +127,6 @@ foo.c:39: blah
 blah /foo.c:23:0:4: blah
 blah foo.c:34:1:3:4: blah
 
-init.el:362:9:Warning: assignment to free variable `c-basic-offset'
-
 /Users/bkelley/p4/apiOne/main/build/tools/Darwin/lua/LUA: object_q.lua:15: assertion failed!
 stack traceback:
 	[C]: in function 'assert'
@@ -47,20 +147,3 @@ Bash: Match this:
 script.sh: line 1: 73293 Segmentation fault: 11  .built_/Exe/testInvoke
   ... but not this:
 /bin/sh: line 1: 73293 Segmentation fault: 11  .built_/Exe/testInvoke
-
-* Node.js
-
-Node seems to always prefix user files with "/".
-
-/Users/bkelley/p/dev/js/myassert_q.js:3
-f)
- ^
-
-node.js:134
-        throw e; // process.nextTick error, or 'error' event on first tick
-        ^
-ReferenceError: blah is not defined
-    at /Users/bkelley/foo.js:4:
-    at Object.CALL_NON_FUNCTION (native)
-    at Object.<anonymous> (/Users/bkelley/foo.js:4:1)
-    at Module._compile (module.js:402:26)

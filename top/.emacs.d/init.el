@@ -240,59 +240,53 @@ lines for new window."
   (lisp-interaction-mode)
   (font-lock-mode t))
 
-;; We need to carefully select which expressions to include in
-;; compilation-error-regexp-alist because some will match things we don't
-;; want to match.  In particular, the 'gnu' rule conflicts with Lua error
-;; messages.
+;; compilation-error-regexp-alist : Test with ./lisp/mycomp.txt
 ;;
-;; Test this by loading ./mycomp.txt
+;; We can add regexps to the alist, but debugging is tedious and confounded
+;; by the tendency for the built-in regexps to override our customizations,
+;; regardless of whether we add them to the head or tail of the alist.  (The
+;; undesired ones match "FILE:LINE" as file name, versus just "FILE".)
 ;;
-(defvar my-regexp-alist-alist
-  (eval-when-compile
-    (let* ((file "\\(\\(?:[a-zA-Z]:[/\\\\]\\|[/\\\\]\\)?[\\.[:alnum:]][^():\n]*[[:alpha:]]\\)")
+;; My current solution is to drastically restrict the set of regexps by
+;; defining my own alist from scratch.
+;;
+;; Hard lesson: Emacs regexp syntax for alternatives handled matching
+;; strangely, so it's pretty useless for this use case.  The un-matched
+;; branches emit 'nil' captures.
+;;
+;;    (match-string "\\(?:\\(A\\)\\|\\(B\\)\\)" "B")
+;;    (match-data)  -->  (0 1 nil nil 0 1)
+;;
 
-           ;; Match "<digits>[.<digits>]" ; two captures: line, column
-           (lc "\\([0-9]+\\)\\(?:[:.]\\([0-9]+\\)\\)?")
+(defvar original-compilation-error-regexp-alist
+  nil)
 
-           ;; Match "<file>:<lc>[-<lc>]"
-           ;;   Five captures:  file, line1, col1, line2, col2
-           ;;   Skip initial "at " or "In file included from "
-           (colons (concat "\\(?:^\\|[[:space:]]\\)\\(?:at \\|In file included from \\)?" file ":" lc "\\(?:-" lc "\\)?:.*"))
-
-           ;; Match "<file>(<line>)..." ; two captures: file, line
-           (parens (concat "^" file "(\\([0-9]+\\))[ :]*[^:]*\\(?:[Ww]arning\\|[Ee]rror\\)"))
-
-           ;; Match "<file>: line <line> ..."  (but not when file is "/bin/bash")
-           (mybash "^\\([^:\n/][^:\n]+\\): line \\([0-9]+\\):")
-
-           ;; Match ""<file>", line <line> ..."
-           (armcc "\"\\([^\"\n]+\\)\",? [Ll]ine \\([0-9]+\\)")
-
-           ;; Match <assert.h> "Assertion failed: ..."
-           (asrt "^Assertion failed: .*, file \\([^,]*\\), line \\([0-9]+\\)")
-
-           ;; Match "   at XXXX (<file>:<lc>)"
-           (node (concat "^    at .* (\\(/[^()\n:]*\\):" lc ")"))
-           (node2 (concat "^\\(/[^():\n]*\\.[a-zA-Z]+\\):" lc)))
-
-      `((node ,node 1 (2 . 4) (3 . 5) nil 1)
-        (node2 ,node2 1 (2 . 4) (3 . 5) nil 1)
-        (colons ,colons 1 (2 . 4) (3 . 5) nil 1)
-        (asrt ,asrt 1 2 nil nil 1)
-        (parens ,parens 1 2 nil nil 1)
-        (mybash ,mybash 1 2 nil nil 1)
-        (armcc ,armcc 1 2 nil nil 1)))))
-
-;; We cannot set these variables before (require 'compile), and
-;; compilation-mode-hook runs too late.
 (eval-after-load `compile
-  '(progn
+  '(let* ((num       "\\([0-9]+\\)")
+          (file      "\\([^\n :()]+\\)")
+          (file-abs  "\\(/[^\n :()]+\\)")
+          (file-url  (concat "\\(?:file://\\)" file-abs))
+          (file-url? (concat "\\(?:file://\\)?" file-abs))  ;; or abs..
+
+          (flc      (concat file ":" num ":" num))
+          (flc?     (concat file ":" num "\\(?::" num "\\)?"))
+          (flc-url  (concat file-url? ":" num ":" num))
+
+          (my-alist-alist
+           `((terser ,(concat "^Parse error at " file ":" num "," num "\n") 1 2 3)
+             (gnufix ,(concat "^In file included from " flc? ":\n") 1 2 3)
+             (node-a ,(concat "^" file-url ":" num "\n") 1 2)
+             (node-b ,(concat "^    at [A-Za-z_][^ :/()\n]* (" flc-url ")") 1 2 3)
+             (node-c ,(concat "^    at " flc-url) 1 2 3)))
+
+          (my-alist (mapcar 'car my-alist-alist)))
+
+     ;; add custom symbol defs to alist^2
      (setq compilation-error-regexp-alist-alist
-           (append my-regexp-alist-alist compilation-error-regexp-alist-alist))
+           (append my-alist-alist compilation-error-regexp-alist-alist))
+
      (setq compilation-error-regexp-alist
-           '(asrt colons parens mybash armcc node node2
-                  gcc-include gcov-file gcov-header gcov-nomark
-                  gcov-called-line gcov-never-called))))
+           (append my-alist '(gnu)))))
 
 ;; shell
 (defun shell-bottom (arg)
