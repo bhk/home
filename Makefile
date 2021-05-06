@@ -1,13 +1,13 @@
 #!/bin/bash
 :; for v in "${@//!/!1}" ; do v=${v// /!0} ; v=${v//	/!+}; a[++n]=${v:-!.} ; done ; LC_ALL=C SCAM_ARGS=${a[*]} exec make -Rr --no-print-directory -f"$0" 9>&1
-SCAM_MAIN := ./.scam/9d4456172c25d542/make.scm 'main
-^uid := cf9ee294a928fc53
+SCAM_MAIN := ./.scam/415845486f75dd4a/make.scm 'main
+^uid := 9a9da5582e4224d7
 
-define [mod-./.scam/9d4456172c25d542/make.scm]
+define [mod-./.scam/415845486f75dd4a/make.scm]
 $(call ^R,core)
 'top := top
-'linked-dirs := .emacs.d .config
-'vec-relpath = $(if $(and $1,$(call `eq?,$(call ^n,1,$1),$(call ^n,1,$2))),$(call 'vec-relpath,$(wordlist 2,99999999,$1),$(wordlist 2,99999999,$2)),$(call `append,$(foreach ;,$1,..),$2))
+'linked-dirs := .emacs.d .config/git
+'vec-relpath = $(if $(and $1,$(findstring $(subst $(call ^n,1,$2)0,1,$(call ^n,1,$1)0),1)),$(call 'vec-relpath,$(wordlist 2,99999999,$1),$(wordlist 2,99999999,$2)),$(call `append,$(foreach ;,$1,..),$2))
 'relpath = $(call `concat-vec,$(call 'vec-relpath,$(call `split,/,$(abspath $1)),$(call `split,/,$(abspath $2))),/)
 'find-files = $(foreach ;,$1,$(call ^Y,$(wildcard $;/.* $;/*),,,,,,,,,$`(if $`1,$`(call 'find-files,$`(filter-out %/.. %/.,$`1)),$(call ^E,$;))))
 'is-symlink? = $(shell if [ -L '$1' ] ; then echo 1 ; fi)
@@ -17,8 +17,8 @@ $(call ^R,core)
 'visit-files = $(foreach ;,$(call `append,$(filter-out $(addsuffix /%,$('linked-dirs)),$(patsubst $('top)/%,%,$(call 'find-files,$('top)))),$('linked-dirs)),$(call ^Y,$(HOME)/$;,$;,,,,,,,,$1))
 'rules := help show install uninstall
 define 'build
-$(if $(call `eq?,$1,help),$(info $(subst LDIRS,$(foreach ;,$('linked-dirs),$(subst D,$;,
-   ~/D/)),$('help-raw))),$(if $(call `eq?,$1,show),$(call 'visit-files,$`(info $`1 --> $`2)),$(if $(call `eq?,$1,install),$(call 'visit-files,$(value 'install-file)),$(if $(call `eq?,$1,uninstall),$(call 'visit-files,$(value 'uninstall-file))))))
+$(if $(findstring $(subst help0,1,$10),1),$(info $(subst LDIRS,$(foreach ;,$('linked-dirs),$(subst D,$;,
+   ~/D/)),$('help-raw))),$(if $(findstring $(subst show0,1,$10),1),$(call 'visit-files,$`(info $`1 --> $`2)),$(if $(findstring $(subst install0,1,$10),1),$(call 'visit-files,$(value 'install-file)),$(if $(findstring $(subst uninstall0,1,$10),1),$(call 'visit-files,$(value 'uninstall-file))))))
 endef
 define 'main
 $(and $(foreach ;,$('rules),$(eval $(subst X,$;,.PHONY: X
@@ -46,6 +46,8 @@ $(if ,, ) :=
 ^u = $(subst !1,!,$(subst !+,	,$(subst !0, ,$(subst !.,,$1))))
 ^n = $(subst !1,!,$(subst !+,	,$(subst !0, ,$(subst !.,,$(word $1,$2)))))
 ^k = $(subst %,!8,$(^d))
+^dk = $(subst !1,!,$(subst !+,	,$(subst !0, ,$(subst !.,,$(subst !8,%,$(word 1,$(subst !=, ,$1)))))))
+^dv = $(subst !1,!,$(subst !+,	,$(subst !0, ,$(subst !.,,$(word 2,$(subst !=, ,$1))))))
 ^Y = $(call if,,,$(10))
 ^v = $(subst !.,!. ,$(filter-out %!,$(subst !. ,!.,$(foreach n,$(wordlist $N,9,1 2 3 4 5 6 7 8),$(call ^d,$($n)))$(if $9, $9) !)))
 ^av = $(foreach N,1,$(^v))
@@ -117,7 +119,6 @@ $(if $(call ^start,$(call ^u,$(word 1,$(SCAM_MAIN))),$(word 2,$(SCAM_MAIN)),$(va
 endef
 
 define [mod-core]
-`eq? = $(if $(findstring 1$1,$(findstring 1$2,1$1)),1)
 `xor = $(if $1,$(if $2,,$1),$2)
 `concat-vec = $(call ^u,$(subst $  ,$(call ^d,$2),$1))
 `cons = $(call ^d,$1)$(if $2, )$2
@@ -126,8 +127,10 @@ define [mod-core]
 `select-vec = $(filter-out !,$(foreach ;,$2,$(if $(call ^Y,$(call ^u,$;),,,,,,,,,$1),$;,!)))
 `select-words = $(foreach ;,$(foreach ;,$2,$(if $(call ^Y,$;,,,,,,,,,$1),$;)),$;)
 `vec-filter = $(if $(findstring %,$2),$(subst !P,%,$(call $1,$(subst %,!P,$2),$(subst %,!P,$3))),$(call $1,$2,$3))
-`indices-b = $(if $(filter $1,$2),$2,$2 $(call `indices-b,$1,$(words $3),. $3))
-`indices-a = $(if $(filter-out 0,$1),$(call `indices-b,$1,1,. .))
+`permute = $(if $(findstring 00,$2),$(foreach ;,$1,$(call `permute,$1,$(subst 0x,,$2x),$3$;)),$(if $2,$(foreach ;,$1,$(addprefix $3$;,$1)),$(addprefix $3,$1)))
+`urange-x = $(if $(word $1,$2),$2,$(call `urange-x,$1,$2 $(foreach ;,1 2 3 4 5 6 7 8 9,$(call `permute,0 1 2 3 4 5 6 7 8 9,$3,$;)),$30))
+`urange = $(wordlist $1,$2,$(call `urange-x,$2,1 2 3 4 5 6 7 8 9,))
+`indices = $(if $(word 10,$1),$(call `urange,1,$(words $1)),$(wordlist 1,$(words $1),1 2 3 4 5 6 7 8 9))
 `rev-by-10s = $(if $1,$(if $2,$(foreach ;,10 9 8 7 6 5 4 3 2 1,$(call `rev-by-10s,$(wordlist $(word $;,0 1 2 3 4 5 6 7 8 9)$(patsubst %0,%1,$2),$;$2,$1),$(patsubst 0%,%,$2))),$(foreach ;,10 9 8 7 6 5 4 3 2 1,$(word $;,$1))))
 `rev-zeroes = $(if $(word 1$21,$1),$(call `rev-zeroes,$1,0$2),$2)
 `reverse = $(wordlist 1,99999999,$(call `rev-by-10s,$1,$(call `rev-zeroes,$1,)))
@@ -137,7 +140,6 @@ define [mod-core]
 `numeric? = $(if $(filter 0% 1% 2% 3% 4% 5% 6% 7% 8% 9%,$(subst -,,$1)),$(if $(patsubst .%,%,$(patsubst %e,%,$(subst 0,,$(patsubst -%,%,$(subst $  ,_,$(subst E0,e,$(subst E-,E,$(subst e,E,$(subst +,-,$(subst 9,0,$(subst 8,0,$(subst 7,0,$(subst 6,0,$(subst 5,0,$(subst 4,0,$(subst 3,0,$(subst 2,0,$(subst 1,0,$1)))))))))))))))))),,$1))
 `word-index? = $(if $(subst 9,,$(subst 8,,$(subst 7,,$(subst 6,,$(subst 5,,$(subst 4,,$(subst 3,,$(subst 2,,$(subst 1,,$(subst 0,,$1)))))))))),,$(subst 0,,$1))
 `append = $(filter %,$1 $2 $3 $4 $5 $6 $7 $8 $(if $9,$(call ^u,$9)))
-`dict-key = $(call ^u,$(subst !8,%,$(word 1,$(subst !=, ,$1))))
 `dict-find = $(word 1,$(filter $(subst %,!8,$(call ^d,$1))!=%,$2))
 `dict-get = $(call ^u,$(or $(word 2,$(subst !=, ,$(filter $(subst %,!8,$(call ^d,$1))!=%,$2))),$(subst !,!1,$3)))
 `dict-remove = $(filter-out $(subst %,!8,$(call ^d,$1))!=%,$2)
@@ -150,14 +152,14 @@ define `symbol?
 $(and $(findstring $1,$(word 1,$1)),$(if $(or $(findstring 
 ,$1),$(findstring $[,$1),$(findstring $],$1),$(findstring [,$1),$(findstring ],$1),$(findstring $(if ,,,),$1),$(findstring ;,$1),$(findstring :,$1),$(findstring ',$1),$(findstring `,$1),$(findstring ",$1),$(findstring !=,$1)),,1),$1)
 endef
-`format-dict = $(if $(findstring !=,$1),$(if $(call `eq?,$1,$(foreach ;,$1,$(call ^k,$(call ^n,1,$(subst !=, ,$;)))!=$(call ^d,$(call ^n,2,$(subst !=, ,$;))))),{$(call `concat-vec,$(foreach ;,$1,$(call ^d,$(or $(call `symbol?,$(call `dict-key,$;)),$(call `format,$(call `dict-key,$;))): $(call `format,$(call ^n,2,$(subst !=, ,$;))))),$(if ,,, ))}))
+`format-dict = $(if $(findstring !=,$1),$(if $(findstring $(subst $(foreach ;,$1,$(call ^k,$(call ^dk,$;))!=$(call ^d,$(call ^dv,$;)))0,1,$10),1),{$(call `concat-vec,$(foreach ;,$1,$(call ^d,$(or $(call `symbol?,$(call ^dk,$;)),$(call `format,$(call ^dk,$;))): $(call `format,$(call ^dv,$;)))),$(if ,,, ))}))
 `data-foreach = $(if $2,$(call `data-foreach,$1,$(wordlist 2,99999999,$2),$(wordlist 2,99999999,$3),$4$(if $4, )$(call ^Y,$(if $(filter L,$(word 1,$2)),$3,$(if $(filter S,$(word 1,$2)),$(call ^n,1,$3),$(if $(filter W,$(word 1,$2)),$(word 1,$3),$(error bad encoding in ctor pattern)))),$(word 1,$2),,,,,,,,$1)),$4)
-`format-record = $(if $(filter !:%,$(word 1,$1)),$(call ^Y,$(call `dict-get,$(word 1,$1),$(^tags)),$(wordlist 2,99999999,$1),$(word 1,$1),$1,,,,,,$`(and $`1,$`(call `eq?,$`(filter %,$`4),$`(filter %,$`(call `data-foreach,$``(if $``(call `eq?,S,$``2),$``(call ^d,$``1),$``1),$`(wordlist 2,99999999,$`1),$`2,$`3))),($`(call ^n,1,$`1)$`(if $`(wordlist 2,99999999,$`1), )$`(call `data-foreach,$``(if $``(and $``(call `eq?,L,$``2),$``(if $``1,,1)),[],$``(call `format,$``1)),$`(wordlist 2,99999999,$`1),$`2,)))))
+`format-record = $(if $(filter !:%,$(word 1,$1)),$(call ^Y,$(call `dict-get,$(word 1,$1),$(^tags)),$(wordlist 2,99999999,$1),$(word 1,$1),$1,,,,,,$`(and $`1,$`(findstring $`(subst $`(filter %,$`(call `data-foreach,$``(if $``(findstring $``(subst $``20,1,S0),1),$``(call ^d,$``1),$``1),$`(wordlist 2,99999999,$`1),$`2,$`3))0,1,$`(filter %,$`4)0),1),($`(call ^n,1,$`1)$`(if $`(wordlist 2,99999999,$`1), )$`(call `data-foreach,$``(if $``(and $``(findstring $``(subst $``20,1,L0),1),$``(if $``1,,1)),[],$``(call `format,$``1)),$`(wordlist 2,99999999,$`1),$`2,)))))
 `*format-funcs* := 
 `format-add = $(call ^set,`*format-funcs*,$(call `cons,$1,$(`*format-funcs*)))
 `format-custom = $(if $2,$(or $(call ^Y,$1,,,,,,,,,$(call ^n,1,$2)),$(call `format-custom,$1,$(wordlist 2,99999999,$2))))
 define `format
-$(or $(call `format-custom,$1,$(`*format-funcs*)),$(if $(findstring !,$1),$(or $(call `format-dict,$1),$(call `format-record,$1))),$(if $(or $(findstring !,$1),$(and $(findstring $  ,$1),$(call `numeric?,$(subst $  ,,$1)))),$(if $(call `eq?,$1,$(foreach ;,$1,$(call ^d,$(call ^u,$;)))),[$(foreach ;,$1,$(call `format,$(call ^u,$;)))])),$(call `numeric?,$1),"$(subst ,\x0d,$(subst $ 	,\t,$(subst 
+$(or $(call `format-custom,$1,$(`*format-funcs*)),$(if $(findstring !,$1),$(or $(call `format-dict,$1),$(call `format-record,$1))),$(if $(or $(findstring !,$1),$(and $(findstring $  ,$1),$(call `numeric?,$(subst $  ,,$1)))),$(if $(findstring $(subst $(foreach ;,$1,$(call ^d,$(call ^u,$;)))0,1,$10),1),[$(foreach ;,$1,$(call `format,$(call ^u,$;)))])),$(call `numeric?,$1),"$(subst ,\x0d,$(subst $ 	,\t,$(subst 
 ,\n,$(subst ",\",$(subst \,\\,$1)))))")
 endef
 `vsp-split = $(subst !%$(or $(word 1,$1),%),!:$(word 1,$1) ,$(subst !%$(or $(word 2,$1),%),!:$(word 2,$1) ,$(if $(word 3,$1),$(call `vsp-split,$(wordlist 3,99999999,$1),$2),$2)))
@@ -166,7 +168,7 @@ endef
 `sprintf = $(call `vsprintf,$1,$(foreach N,2,$(^v)))
 `printf = $(info $(call `vsprintf,$1,$(foreach N,2,$(^v))))
 define `expect-x
-$(if $(call `eq?,$1,$2),$(if $(findstring O,$(SCAM_DEBUG)),$(info $3: OK: $1)),$(and $(info $3: error: assertion failed
+$(if $(findstring $(subst $20,1,$10),1),$(if $(findstring O,$(SCAM_DEBUG)),$(info $3: OK: $1)),$(and $(info $3: error: assertion failed
 A: $(call `format,$1)
 B: $(call `format,$2)
 
