@@ -11,7 +11,23 @@ Node seems to always prefix user files with "/".  The initial line is
 usually not of interest, but not easy to skip with this regexp-alist.
 
 
-### Syntax Errors
+### A: Uncaught exceptions (Node v16.10.0 w/ES modules)
+
+Error: Assertion failed!
+    at assert (file:///Users/bhk/src/test.js:215:9)
+    at Text.set textContent [as textContent] (file:///Users/bhk/src/test.js:156:9)
+    at new Text (file:///Users/bhk/src/test.js:224:26)
+
+
+### B:  `import` error (Node v16.10.0)
+### Note: the 'gnu regex matches the first "at ... (node:...)" line...
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/bhk/src/irk/eventutils.js' imported from /Users/bhk/src/irk/grid.js
+    at new NodeError (node:internal/errors:371:5)
+    at finalizeResolution (node:internal/modules/esm/resolve:416:11)
+
+
+### C: Syntax Errors
 
 file:///Users/bhk/foo.js:1125
 );
@@ -22,21 +38,7 @@ SyntaxError: missing ) after argument list
     at async link (node:internal/modules/esm/module_job:48:21)
 
 
-### Exceptions from ES6 modules
-
-node:internal/process/esm_loader:74
-    internalBinding('errors').triggerUncaughtException(
-                              ^
-
-Error: values not equal
-  A: 1
-  B: 2
-
-    at Object.tests.checkPlayAxis (file:///Users/bhk/foo.js:1106:5)
-    at file:///Users/bhk/foo.js:1113:15
-
-
-### Uncaught exceptions
+### D: Uncaught exceptions (non-module?)
 
 /Users/bkelley/p/dev/js/myassert_q.js:3
 )
@@ -47,10 +49,20 @@ node.js:134
         ^
 ReferenceError: blah is not defined
     at /Users/bkelley/foo.js:4:
+    at file:///Users/bkelley/foo.js:5:4:
     at Object.CALL_NON_FUNCTION (native)
     at Object.<anonymous> (/Users/bkelley/foo.js:4:1)
     at Module._compile (module.js:402:26)
 
+----------------------------------------------------------------
+-- Rollup.js
+----------------------------------------------------------------
+
+[!] Error: Unexpected token
+idemo.js (74:5)
+72:         // Time
+73:         E({$tag: "pre"}, opts.subjectTime),
+74:     ]});
 
 ----------------------------------------------------------------
 -- Terser (JS minifier)

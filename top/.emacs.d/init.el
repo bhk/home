@@ -268,16 +268,18 @@ lines for new window."
           (file-url  (concat "\\(?:file://\\)" file-abs))
           (file-url? (concat "\\(?:file://\\)?" file-abs))  ;; or abs..
 
+          (nums     (concat ":" num "\\(?::" num "\\)?"))
           (flc      (concat file ":" num ":" num))
-          (flc?     (concat file ":" num "\\(?::" num "\\)?"))
+          (flc?     (concat file ":" nums))
           (flc-url  (concat file-url? ":" num ":" num))
 
           (my-alist-alist
            `((terser ,(concat "^Parse error at " file ":" num "," num "\n") 1 2 3)
              (gnufix ,(concat "^In file included from " flc? ":\n") 1 2 3)
-             (node-a ,(concat "^" file-url ":" num "\n") 1 2)
-             (node-b ,(concat "^    at [A-Za-z_][^ :/()\n]* (" flc-url ")") 1 2 3)
-             (node-c ,(concat "^    at " flc-url) 1 2 3)))
+             (node-a ,(concat "^    at [A-Za-z_][^:/()\n]* (" flc-url ")\n") 1 2 3)
+             (node-b ,(concat "^Error [^\n]+imported from " file "\n") 1)
+             (node-c ,(concat "^\\(?:    at \\)?" file-url? nums ":?\n") 1 2 3)
+             (rollup ,(concat "^\\[!\\] Error[^\n]*\n" file " (" num ":" num ")\n") 1 2 3)))
 
           (my-alist (mapcar 'car my-alist-alist)))
 
@@ -395,11 +397,10 @@ names.  Customize with `cwdtrack-regexp'."
 (defvar save-and-make-command "make")
 (defun save-and-make (arg)
   (interactive "P")
-  (if (not (equal "*" (substring (buffer-name) 0 1)))
-      (save-buffer))
   (if arg
       (setq save-and-make-command (read-string "Make command: " save-and-make-command)))
-  (compile save-and-make-command))
+  (let ((compilation-ask-about-save nil))
+    (compile save-and-make-command)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modes & Configurations
@@ -421,7 +422,9 @@ names.  Customize with `cwdtrack-regexp'."
 
 (setq auto-mode-alist
       (append
-       '(("\\.pl\\'" . prolog-mode)
+       '(("\\.8\\'" . asm-mode)
+         ("\\.cjs\\'" . javascript-mode)
+         ("\\.pl\\'" . prolog-mode)
          ("\\.rs\\'" . rust-mode)
          ("\\.[ch]\\'" . c++-mode)
          ("\\.bid\\'" . c++-mode)
@@ -493,6 +496,16 @@ names.  Customize with `cwdtrack-regexp'."
 
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
 
+;; asm-mode
+
+(defun my-asm-mode-hook ()
+  (setq indent-tabs-mode t)
+  (define-key (current-local-map) "\M-;" 'asm-comment)
+  (define-key (current-local-map) [?\;] 'self-insert-command))
+
+(add-hook 'asm-mode-hook 'my-asm-mode-hook)
+
+
 (defun my-limode-hook ()
   (local-set-key [C-return] 'eval-last-sexp))
 (add-hook 'lisp-interaction-mode-hook 'my-limode-hook)
@@ -506,6 +519,17 @@ names.  Customize with `cwdtrack-regexp'."
 (add-hook 'artist-mode-init-hook 'my-artist-mode-hook)
 
 (add-hook 'grep-mode-hook (lambda () (setq truncate-lines t)))
+
+(defun find-log ()
+  (interactive)
+  (find-file "~/Dropbox/txt/log.txt"))
+
+(defun find-todo ()
+  (interactive)
+  (find-file "~/Dropbox/txt/todo.txt"))
+
+;; use IBM PC character set for *.8 files
+(modify-coding-system-alist 'file "\\.8\\'" 'cp437)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Bindings
@@ -564,6 +588,8 @@ names.  Customize with `cwdtrack-regexp'."
 (global-set-key "\C-zg"    'c-grep)
 (global-set-key "\C-zm"    'compile)
 (global-set-key "\C-z\C-\\" 'toggle-truncate-lines)
+(global-set-key "\C-z\C-z" 'find-log)
+(global-set-key "\C-zz" 'find-todo)
 ;; Horizontal scrolling (see toggle-truncate-lines)
 (global-set-key [?\C-,] (lambda () (interactive) (scroll-left 4)))
 (global-set-key [?\C-.] (lambda () (interactive) (scroll-right 4)))

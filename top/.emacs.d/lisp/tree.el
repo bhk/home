@@ -370,14 +370,10 @@ TOP is directory that treespec is relative to."
 
 (defvar default-treespec
   (concat
-   "....(js|c|cc|cpp|h|s|idl|py|cif|rb|lua|el|bid|min|mak|html|shtml|pl|java|txt|s|scm|scons)\n"
-   ".../[Mm]akefile\n"
-   "[Mm]akefile\n"
-   ".../SCons*t\n"
-   "-.../out/...\n"
-   "-out/...\n"
+   "...\n"
+   "-TAGS\n"
+   "-.../TAGS\n"
    "-(.)...\n"
-   "-...[Hh][Ww][Ii][Oo].h\n"
    "-.../(.)...\n")
   "Default treespec to use when .treespec file is not present in `tree-top'.")
 
