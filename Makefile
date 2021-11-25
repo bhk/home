@@ -1,9 +1,9 @@
 #!/bin/bash
 :; for v in "${@//!/!1}" ; do v=${v// /!0} ; v=${v//	/!+}; a[++n]=${v:-!.} ; done ; LC_ALL=C SCAM_ARGS=${a[*]} exec make -Rr --no-print-directory -f"$0" 9>&1
-SCAM_MAIN := ./.scam/415845486f75dd4a/make.scm 'main
-^uid := 9a9da5582e4224d7
+SCAM_MAIN := ./.scam/70b63d4cba3b704a/make.scm 'main
+^uid := b4f6a760b9533031
 
-define [mod-./.scam/415845486f75dd4a/make.scm]
+define [mod-./.scam/70b63d4cba3b704a/make.scm]
 $(call ^R,core)
 'top := top
 'linked-dirs := .emacs.d .config/git
@@ -12,8 +12,8 @@ $(call ^R,core)
 'find-files = $(foreach ;,$1,$(call ^Y,$(wildcard $;/.* $;/*),,,,,,,,,$`(if $`1,$`(call 'find-files,$`(filter-out %/.. %/.,$`1)),$(call ^E,$;))))
 'is-symlink? = $(shell if [ -L '$1' ] ; then echo 1 ; fi)
 'help-raw := Usage:$'   make help         Display this message$'   make install      Install symbolic links$'   make uninstall    Remove symbolic links$'$'The `top` directory contains an image of files to be propagated to your$'$`HOME directory.$'$'Instead of copying the files, `make install` creates symbolic links so that$'this repository can be easily updated using git.  `make install` avoids$'removing files or links that already exist; you may have to manually remove$'some files in order to deploy the ones in this project.  Also, you can$'manually replace a symbolic link with a copy in order to maintain the local$'$`HOME directory in a state that diverges from the project (e.g. work$'machines vs. personal machines).$'$'In some cases, symbolic links are created to directories rather than$'individual files.  This can make it easier to track files that are added to$'those directories and propagate changes back into this project.  Linked$'directories are: LDIRS$'$'Modify the `linked-dirs` variable in make.scm to change this.$'
-'install-file = $(and $(if $(if $(wildcard $(dir $1)),,1),$(and $(info Creating directory: $(dir $1))1,$(shell mkdir -p $(dir $1))))1,$(if $(wildcard $1),$(if $(call 'is-symlink?,$1),$(info Skipping $2 (already a symlink)),$(info AVOIDING $2 (remove pre-existing file first))),$(and $(shell ln -fs $(call 'relpath,$(dir $1),$('top))/$2 $1)1,$(info Installed $2))))
-'uninstall-file = $(if $(call 'is-symlink?,$1),$(and $(info Removing $1)1,$(shell rm $1)),$(if $(wildcard $1),$(info LEAVING $1 (not a symlink)),$(info Missing $1)))
+'install-file = $(if $(if $(if $(wildcard $(dir $1)),,1),$(info Creating directory: $(dir $1))$(shell mkdir -p $(dir $1))),)$(if $(wildcard $1),$(if $(call 'is-symlink?,$1),$(info Skipping $2 (already a symlink)),$(info AVOIDING $2 (remove pre-existing file first))),$(if $(shell ln -fs $(call 'relpath,$(dir $1),$('top))/$2 $1),)$(info Installed $2))
+'uninstall-file = $(if $(call 'is-symlink?,$1),$(info Removing $1)$(shell rm $1),$(if $(wildcard $1),$(info LEAVING $1 (not a symlink)),$(info Missing $1)))
 'visit-files = $(foreach ;,$(call `append,$(filter-out $(addsuffix /%,$('linked-dirs)),$(patsubst $('top)/%,%,$(call 'find-files,$('top)))),$('linked-dirs)),$(call ^Y,$(HOME)/$;,$;,,,,,,,,$1))
 'rules := help show install uninstall
 define 'build
@@ -21,9 +21,9 @@ $(if $(findstring $(subst help0,1,$10),1),$(info $(subst LDIRS,$(foreach ;,$('li
    ~/D/)),$('help-raw))),$(if $(findstring $(subst show0,1,$10),1),$(call 'visit-files,$`(info $`1 --> $`2)),$(if $(findstring $(subst install0,1,$10),1),$(call 'visit-files,$(value 'install-file)),$(if $(findstring $(subst uninstall0,1,$10),1),$(call 'visit-files,$(value 'uninstall-file))))))
 endef
 define 'main
-$(and $(foreach ;,$('rules),$(eval $(subst X,$;,.PHONY: X
+$(if $(foreach ;,$('rules),$(eval $(subst X,$;,.PHONY: X
 X: ; @true $`(call 'build,X)
-)))1,$(eval Makefile: make.scm; @top/local/bin/scam -o $`@ $`<))
+))),)$(eval Makefile: make.scm; @top/local/bin/scam -o $`@ $`<)
 endef
 
 endef
@@ -70,12 +70,12 @@ $(eval $(call `esc-LHS,$1) :=$` $(subst
 ,$`',$(subst #,$`",$(subst $`,$`$`,$2))))$3
 endef
 define ^fset
-$(and $(eval define $(call `esc-LHS,$1)
+$(eval define $(call `esc-LHS,$1)
 $(subst \$ 
 ,\$` 
 ,$(subst define,$` define,$(subst endef,$` endef,$2
 )))endef
-)1,$3)
+)$3
 endef
 define ^E
 $(subst $`,$`$2,$`(if ,,$(subst 
@@ -85,32 +85,32 @@ endef
 ^tags := 
 ^at = $(call ^set,^tags,$(^tags) $(filter-out $(^tags),$1))
 `*required* := 
-^load = $(and $(if $(if $(filter-out u%,$(flavor [mod-$1])),1),$(eval $(value [mod-$1])),$(eval include $(subst $ 	,\	,$(subst $  ,\ ,$(value SCAM_DIR)$1.o))))1,$1)
-^R = $(and $(or $(filter $(call ^d,$1),$(`*required*)),$(and $(call ^set,`*required*,$(`*required*) $(call ^d,$1))1,$(call ^load,$1)))1,)
+^load = $(if $(if $(if $(filter-out u%,$(flavor [mod-$1])),1),$(eval $(value [mod-$1])),$(eval include $(subst $ 	,\	,$(subst $  ,\ ,$(value SCAM_DIR)$1.o)))),)$1
+^R = $(if $(or $(filter $(call ^d,$1),$(`*required*)),$(call ^set,`*required*,$(`*required*) $(call ^d,$1))$(call ^load,$1)),)
 `trace-info = $(info TRACE: $1$2$3$4)
 `trace-digits = $(if $(findstring /1111111111,$1),$(call `trace-digits,$(subst /1111111111,1/,$1)),$(subst !:,,$(subst :!,0!,$(subst :0,::,$(subst :00,:::,$(subst :0000,:::::,$(subst $  ,,!:$(foreach ;,/$(subst /, /,$1),$(words $(subst /,,$(subst 1, 1,$;))))!:)))))))
 `trace-words = $(if $(word $1,$2),$2,$(call `trace-words,$1,1 $2))
-`trace-body = $(subst :D,$4,$(subst :N,$(patsubst '%,%,$2),$(subst :C,$`(call [S-$3],$`1,$`2,$`3,$`4,$`5,$`6,$`7,$`8,$`9),$(subst :E,$`(eval ^TI:=$`$`(^TI) ):C$`(eval ^TI:=$`$`(subst x ,,x$`$`(^TI))),$(subst :I,info $`(^TI),$(if $(filter c,$1),$(and $(call ^set,[K-$3],$(or $(value [K-$3]),///////),)1,$`(eval [K-$3]:=$`(subst /1111111111,1/,$`([K-$3])1)):D),$(if $(filter p%,$1),$(subst :,:$` ,$(call ^u,$(patsubst p%,%,$1))):D,$(if $(filter t f,$1),$(if $(or $(filter f,$1),$(filter ^ta ^f ^tc ^tp ^n,$2)),$`(:I--> :N):E$`(:I<-- :N),$`(:I--> (:N$`(^ta)))$`(call ^tp,$`(^TI)<-- :N:,:E)),$(if $(filter x%,$1),$`(foreach ^X,1,:C)$`(if $`(^X),,$`(if $`(foreach ^X,$(wordlist 2,99999999,$(call `trace-words,$(or $(patsubst x%,%,$1),11),1)),$`(if :C,)),)),$(error TRACE: Unknown mode: '$1'))))))))))
+`trace-body = $(subst :D,$4,$(subst :N,$(patsubst '%,%,$2),$(subst :C,$`(call [S-$3],$`1,$`2,$`3,$`4,$`5,$`6,$`7,$`8,$`9),$(subst :E,$`(eval ^TI:=$`$`(^TI) ):C$`(eval ^TI:=$`$`(subst x ,,x$`$`(^TI))),$(subst :I,info $`(^TI),$(if $(filter c,$1),$(if $(call ^set,[K-$3],$(or $(value [K-$3]),///////),),)$`(eval [K-$3]:=$`(subst /1111111111,1/,$`([K-$3])1)):D,$(if $(filter p%,$1),$(subst :,:$` ,$(call ^u,$(patsubst p%,%,$1))):D,$(if $(filter t f,$1),$(if $(or $(filter f,$1),$(filter ^ta ^f ^tc ^tp ^n,$2)),$`(:I--> :N):E$`(:I<-- :N),$`(:I--> (:N$`(^ta)))$`(call ^tp,$`(^TI)<-- :N:,:E)),$(if $(filter x%,$1),$`(foreach ^X,1,:C)$`(if $`(^X),,$`(if $`(foreach ^X,$(wordlist 2,99999999,$(call `trace-words,$(or $(patsubst x%,%,$1),11),1)),$`(if :C,)),)),$(error TRACE: Unknown mode: '$1'))))))))))
 `trace-match = $(foreach ;,$(if $(filter '% `% "%,$1),$(patsubst "%,%,$1),'$1),$(filter-out $(foreach ;;,^% `% `trace% `esc-% `set-native-fn `filtersub,$(if $(filter-out $(;;),$;),$(;;))),$(filter $;,$2)))
 `*trace-ids* := 
 `trace-id = $(or $(call `filtersub,$1:%,%,$(`*trace-ids*)),$(if $2,$(call ^set,`*trace-ids*,$(`*trace-ids*) $1:$(words $(`*trace-ids*)),$(words $(`*trace-ids*)))))
 define `trace
-$(subst "`,`,$(subst "',',$(addprefix ",$(filter %,$(foreach ;,$(filter-out %:v %:-,$1),$(foreach ;;,$(foreach ;;,$(call `trace-match,$(filter-out :%,$(subst :, :,$;)),$(filter-out $(`*do-not-trace*) [% ~trace ~untrace ~trace-ext ~untrace-ext ^Y  $(call `filtersub,%:-,%,$1),$(.VARIABLES))),$(if $(filter filerec%,$(origin $(;;))$(flavor $(;;))),$(;;))),$(foreach ;;;,$(call `trace-id,$(;;),1),$(and $(and $(if $(filter u%,$(origin [S-$(;;;)])),$(call ^fset,[S-$(;;;)],$(value $(;;)),))1,$(if $(filter %:v,$1),$(call `trace-info,[,$(subst $  ,,$(wordlist 2,999,$(subst :,: ,$;))),] ,$(;;)))1,$(call ^fset,$(;;),$(call `trace-body,$(or $(subst $  ,,$(wordlist 2,999,$(subst :,: ,$;))),t),$(subst #,$`",$(;;)),$(;;;),$(value [S-$(;;;)])),))1,$(;;)))))))))
+$(subst "`,`,$(subst "',',$(addprefix ",$(filter %,$(foreach ;,$(filter-out %:v %:-,$1),$(foreach ;;,$(foreach ;;,$(call `trace-match,$(filter-out :%,$(subst :, :,$;)),$(filter-out $(`*do-not-trace*) [% ~trace ~untrace ~trace-ext ~untrace-ext ^Y  $(call `filtersub,%:-,%,$1),$(.VARIABLES))),$(if $(filter filerec%,$(origin $(;;))$(flavor $(;;))),$(;;))),$(foreach ;;;,$(call `trace-id,$(;;),1),$(if $(if $(if $(filter u%,$(origin [S-$(;;;)])),$(call ^fset,[S-$(;;;)],$(value $(;;)),)),)$(if $(if $(filter %:v,$1),$(call `trace-info,[,$(subst $  ,,$(wordlist 2,999,$(subst :,: ,$;))),] ,$(;;))),)$(call ^fset,$(;;),$(call `trace-body,$(or $(subst $  ,,$(wordlist 2,999,$(subst :,: ,$;))),t),$(subst #,$`",$(;;)),$(;;;),$(value [S-$(;;;)])),),)$(;;))))))))
 endef
 `trace-rev = $(if $1,$(call `trace-rev,$(wordlist 2,99999,$1)) $(word 1,$1))
-`trace-dump = $(foreach ;,$(sort $(foreach ;,$1,$(foreach ;;,$(value [K-$(call `trace-id,$;)]),$(if $(findstring 1,$(;;)),$(and $(call ^set,[K-$(call `trace-id,$;)],///////,)1,$(call ^d,$(subst :, ,$(call `trace-digits,$(;;))) $;)))))),$(call ^d,$(call `trace-info,$(call ^u,$;))))
-`untrace = $(and $(call `trace-dump,$(foreach ;,$(filter $1,$(filter-out :%,$(subst :, :,$(`*trace-ids*)))),$(foreach ;;,$(call `trace-id,$;),$(and $(call ^fset,$;,$(value [S-$(;;)]),)1,$;))))1,$2)
+`trace-dump = $(foreach ;,$(sort $(foreach ;,$1,$(foreach ;;,$(value [K-$(call `trace-id,$;)]),$(if $(findstring 1,$(;;)),$(if $(call ^set,[K-$(call `trace-id,$;)],///////,),)$(call ^d,$(subst :, ,$(call `trace-digits,$(;;))) $;))))),$(call ^d,$(call `trace-info,$(call ^u,$;))))
+`untrace = $(if $(call `trace-dump,$(foreach ;,$(filter $1,$(filter-out :%,$(subst :, :,$(`*trace-ids*)))),$(foreach ;;,$(call `trace-id,$;),$(if $(call ^fset,$;,$(value [S-$(;;)]),),)$;))),)$2
 `do-not-trace = $(call ^set,`*do-not-trace*,$(`*do-not-trace*) $1)
 `start-trace = $(call `trace,$(value SCAM_TRACE))
 SHELL := /bin/bash
 `*atexits* := 
 `at-exit = $(if $(and $2,$(findstring $  $(call ^d,$1) , $(`*atexits*) )),,$(call ^set,`*atexits*,$(call ^d,$1) $(`*atexits*)))
-`run-at-exits = $(and $(foreach ;,$(`*atexits*),$(call ^d,$(call ^Y,,,,,,,,,,$(call ^u,$;))))1,)
+`run-at-exits = $(if $(foreach ;,$(`*atexits*),$(call ^d,$(call ^Y,,,,,,,,,,$(call ^u,$;)))),)
 `check-exit = $(if $(subst 0,,$(subst 9,,$(subst 8,,$(subst 7,,$(subst 6,,$(subst 5,,$(subst 4,,$(subst 3,,$(subst 2,,$(subst 1,,$(patsubst -%,%,$(subst $ 	,x,$(subst $  ,x,$1))))))))))))),$(error scam: main returned '$1'),$(or $1,0))
 define ^start
-$(and $(call `start-trace,$1)1,$(call `do-not-trace,^R ^load)1,$(call ^R,$1)1,$(call `start-trace,$1)1,$(eval $(call ^Y,$(call `check-exit,$(call ^Y,$3,,,,,,,,,$(value $2))),,,,,,,,,.DEFAULT_GOAL :=
+$(if $(call `start-trace,$1),)$(if $(call `do-not-trace,^R ^load),)$(call ^R,$1)$(if $(call `start-trace,$1),)$(eval $(call ^Y,$(call `check-exit,$(call ^Y,$3,,,,,,,,,$(value $2))),,,,,,,,,.DEFAULT_GOAL :=
 .PHONY: [exit]
-[exit]: $`(.DEFAULT_GOAL);@exit $`1$``(call `run-at-exits))))
+[exit]: $`(.DEFAULT_GOAL);@exit $`1$``(call `run-at-exits)))
 endef
 $(if $(call `do-not-trace,^start `start-trace),)
 $(if $(call `at-exit,$`(call `trace-dump,$`(filter-out :%,$`(subst :, :,$`(`*trace-ids*))))),)
@@ -168,28 +168,28 @@ endef
 `sprintf = $(call `vsprintf,$1,$(foreach N,2,$(^v)))
 `printf = $(info $(call `vsprintf,$1,$(foreach N,2,$(^v))))
 define `expect-x
-$(if $(findstring $(subst $20,1,$10),1),$(if $(findstring O,$(SCAM_DEBUG)),$(info $3: OK: $1)),$(and $(info $3: error: assertion failed
+$(if $(findstring $(subst $20,1,$10),1),$(if $(findstring O,$(SCAM_DEBUG)),$(info $3: OK: $1)),$(info $3: error: assertion failed
 A: $(call `format,$1)
 B: $(call `format,$2)
 
 Raw:
 A: $1
 B: $2
-)1,$(if $(findstring K,$(SCAM_DEBUG)),$(call `at-exit,$`(error $`1),1),$(error ))))
+)$(if $(findstring K,$(SCAM_DEBUG)),$(call `at-exit,$`(error $`1),1),$(error )))
 endef
 `assert-x = $(or $1,$(error $(info $2: error: assertion failed)))
 define `see
-$(if $(findstring $1,$2),1,$(and $(info Expected: $(subst 
+$(if $(findstring $1,$2),1,$(info Expected: $(subst 
 ,
-          ,$1))1,$(info $   Within: $(subst 
+          ,$1))$(info $   Within: $(subst 
 ,
-          ,$2))))
+          ,$2)))
 endef
 `uniq-x = $(if $1,$(word 1,$1) $(call `uniq-x,$(filter-out $(word 1,$1),$(wordlist 2,99999999,$1))))
 `uniq = $(subst ~1,~,$(subst ~p,%,$(filter %,$(call `uniq-x,$(subst %,~p,$(subst ~,~1,$1))))))
 `split = $(subst !x,,$(patsubst !x,!.,!x$(subst $ 	,!+,$(subst !!,!1,$(subst $  ! ,!0,$(subst $(subst $  , ! ,$(subst !,!!,$1)), !x,$(subst $  , ! ,$(subst !,!!,$2))))))))
 `1+ = $(if $(filter %1 %2 %3 %4,$1),$(subst 1~,2,$(subst 2~,3,$(subst 3~,4,$(subst 4~,5,$1~)))),$(if $(filter %5 %6 %7,$1),$(subst 5~,6,$(subst 6~,7,$(subst 7~,8,$1~))),$(if $(findstring 9~,$1~),$(call `1+,$(or $(subst 9~,,$1~),0))0,$(patsubst %0,%1,$(patsubst %8,%9,$1)))))
-`mcache = $(and $(if $6,$(info Warning: memoized function passed more than three arguments))1,$(if $(if $(if $(filter-out u%,$(flavor $1)),1),,1),$(call ^set,$1,$(call ^Y,$3,$4,$5,,,,,,,$2),))1,$($1))
+`mcache = $(if $(if $6,$(info Warning: memoized function passed more than three arguments)),)$(if $(if $(if $(if $(filter-out u%,$(flavor $1)),1),,1),$(call ^set,$1,$(call ^Y,$3,$4,$5,,,,,,,$2),)),)$($1)
 `memoenc = $(if $(or $1,$2,$3),~~$(subst ~,~0,$1)$(call `memoenc,$2,$3))
 `memoize = $(if $(if $(if $(filter-out u%,$(flavor $1)),1),,1),$(info Warning: [memoize-1] function '$1' not defined.),$(call ^Y,$(value $1),*memo$(call `memoenc,$1),$1,,,,,,,$`(call ^fset,$`3,$``(call `mcache,$`(call ^E,$`2)$``(call `memoenc,$``1,$``2,$``3),$`(call ^E,$`1),$``1,$``2,$``3,$``(or $``4,$``5,$``6,$``7,$``8)),)))
 `sort-by = $(filter-out %!!,$(subst !!,!! ,$(sort $(foreach ;,$2,$(call ^d,$(call ^Y,$(call ^u,$;),,,,,,,,,$1))!!$;))))

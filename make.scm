@@ -17,7 +17,7 @@
   (if (and from
            (eq? (first from) (first to)))
       (vec-relpath (rest from) (rest to))
-      (append (for x from "..")
+      (append (for (x from) "..")
               to)))
 
 ;; Return relative path from directory `from` to file/directory `to`.
@@ -31,9 +31,8 @@
 ;; Return all files in `names` and all files underneath directories in `names`.
 ;;
 (define (find-files names)
-  (foreach
-   name names
-   (let ((members (wildcard (concat name "/.* " name "/*"))))
+  (foreach (name names)
+    (let ((members (wildcard (concat name "/.* " name "/*"))))
      (if members
          (find-files (filter-out "%/.. %/." members))  ;; is directory
          name))))
@@ -72,7 +71,7 @@ Modify the `linked-dirs` variable in make.scm to change this.
 ")
 
 (define `help-str
-  (subst "LDIRS" (foreach d linked-dirs (subst "D" d "\n   ~/D/"))
+  (subst "LDIRS" (foreach (d linked-dirs) (subst "D" d "\n   ~/D/"))
          help-raw))
 
 ;; Create a symbolic link from dest to rel
@@ -114,8 +113,8 @@ Modify the `linked-dirs` variable in make.scm to change this.
   (define `links (append (not-under linked-dirs tails)
                          linked-dirs))
 
-  (foreach f links
-           (action (concat (native-var "HOME") "/" f) f)))
+  (foreach (f links)
+    (action (concat (native-var "HOME") "/" f) f)))
 
 
 (define rules "help show install uninstall")
@@ -134,8 +133,8 @@ Modify the `linked-dirs` variable in make.scm to change this.
     (concat ".PHONY: X\n"
             "X: ; @true " (lambda () (build "X")) "\n"))
 
-  (foreach r rules
-           (native-eval (subst "X" r phony-rule)))
+  (foreach (r rules)
+    (native-eval (subst "X" r phony-rule)))
 
   ;; Rebuild makefile from this source file when necessary
   (native-eval "Makefile: make.scm; @top/local/bin/scam -o $@ $<"))
