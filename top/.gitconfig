@@ -22,3 +22,5 @@
 	autosetuprebase = always
 [credential]
 	helper = store
+[init]
+	defaultBranch = main
