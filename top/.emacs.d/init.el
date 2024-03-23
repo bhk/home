@@ -8,7 +8,8 @@
   (princ (concat (apply 'format a)) "\n"))
 
 (defmacro filter-it (frm lst)
-  "Return all members of LST for which FRM is non-nil.  In FRM, `it` will be bound t the current item."
+  "Return all members of LST for which FRM is non-nil.  In FRM, `it` will
+be bound t the current item."
   (let ((result (make-symbol "result")))
     `(let (,result)
        (dolist (it ,lst)
@@ -19,8 +20,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Appearance
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(eval-when-compile (require 'cl))
 
 (menu-bar-mode 0)
 (blink-cursor-mode 0)
@@ -136,12 +135,12 @@
   (interactive) (scroll-up 1))
 
 (defun dos()
-  "Select DOS newlines (see 'unix')"
+  "Select DOS newlines (see \\='unix\\=')"
   (interactive)
   (set-buffer-file-coding-system 'iso-latin-1-dos))
 
 (defun unix()
-  "Select UNIX newlines (see 'dos')"
+  "Select UNIX newlines (see \\='dos\\=')"
   (interactive)
   (set-buffer-file-coding-system 'iso-latin-1-unix))
 
@@ -174,16 +173,16 @@ bhk 18-Jan-96"
 ;; And buffer history navigation   (Emissary-like)
 ;;   bury-buffer == go back in history
 ;;   next-buffer == go forward in history
-(defun next-buffer ()
-  "Select the 'next' buffer a la forward/backward (browser-like)
-buffer navigation. bury-buffer and next-buffer act as 'back' and
-'forward', respectively.  bhk Dec-95"
+ (defun next-buffer ()
+   "Select the \\='next\\=' buffer a la forward/backward (browser-like)
+buffer navigation. bury-buffer and next-buffer act as \\='back\\=' and
+\\='forward\\=', respectively.  bhk Dec-95"
   (interactive)
   (switch-to-buffer (car (filter-it (is-browsable-buffer it)
                                     (reverse (buffer-list))))))
 
 (defun prev-buffer ()
-  "Select the 'previous' buffer a la forward/backward
+  "Select the \\='previous\\=' buffer a la forward/backward
 browser-like buffer navigation."
   (interactive)
   (let ((start (current-buffer)))
