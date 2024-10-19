@@ -278,6 +278,7 @@ lines for new window."
              (node-a ,(concat "^    at [A-Za-z_][^:/()\n]* (" flc-url ")\n") 1 2 3)
              (node-b ,(concat "^Error [^\n]+imported from " file "\n") 1)
              (node-c ,(concat "^\\(?:    at \\)?" file-url? nums ":?\n") 1 2 3)
+             (lua ,(concat "^[^\n :()]+: " file ":" num ": ") 1 2)
              (rollup ,(concat "^\\[!\\] Error[^\n]*\n" file " (" num ":" num ")\n") 1 2 3)))
 
           (my-alist (mapcar 'car my-alist-alist)))

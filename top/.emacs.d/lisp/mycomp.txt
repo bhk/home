@@ -105,6 +105,8 @@ euler.scm:6:1: unmatched ")"
 -- Lua
 ----------------------------------------------------------------
 
+../lua/.out/exports/bin/lua: fsu_q.lua:12: syntax error near 'T'
+
 /Users/bkelley/p4/apiOne/main/build/tools/Darwin/lua/LUA: object_q.lua:15: assertion failed!
 stack traceback:
 	[C]: in function 'assert'
