@@ -10,8 +10,17 @@ See also compilation.txt, "example file" in C-h C-v compilation-error-regexp-ali
 Node seems to always prefix user files with "/".  The initial line is
 usually not of interest, but not easy to skip with this regexp-alist.
 
+### Uncaught exceptions (Node v23.11.0)
 
-### A: Uncaught exceptions (Node v16.10.0 w/ES modules)
+Error: ERRORVALUE
+    at FunCell.get (file:///Users/bhk/src/test.js:296:19)
+    at unthunk (file:///Users/bhk/src/test.js:105:23)
+    at useError (file:///Users/bhk/src/test.js:152:15)
+    at file:///Users/bhk/src/test.js:160:17 {
+  [cause]: 'THROWN'
+}
+
+### Uncaught exceptions (Node v16.10.0 w/ES modules)
 
 Error: Assertion failed!
     at assert (file:///Users/bhk/src/test.js:215:9)
@@ -19,7 +28,7 @@ Error: Assertion failed!
     at new Text (file:///Users/bhk/src/test.js:224:26)
 
 
-### B:  `import` error (Node v16.10.0)
+### `import` error (Node v16.10.0)
 ### Note: the 'gnu regex matches the first "at ... (node:...)" line...
 
 Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/bhk/src/irk/eventutils.js' imported from /Users/bhk/src/irk/grid.js
@@ -27,7 +36,7 @@ Error [ERR_MODULE_NOT_FOUND]: Cannot find module '/Users/bhk/src/irk/eventutils.
     at finalizeResolution (node:internal/modules/esm/resolve:416:11)
 
 
-### C: Syntax Errors
+### Syntax Errors
 
 file:///Users/bhk/foo.js:1125
 );
@@ -38,7 +47,7 @@ SyntaxError: missing ) after argument list
     at async link (node:internal/modules/esm/module_job:48:21)
 
 
-### D: Uncaught exceptions (non-module?)
+### Uncaught exceptions (non-module?)
 
 /Users/bkelley/p/dev/js/myassert_q.js:3
 )

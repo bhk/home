@@ -275,10 +275,12 @@ lines for new window."
           (my-alist-alist
            `((terser ,(concat "^Parse error at " file ":" num "," num "\n") 1 2 3)
              (gnufix ,(concat "^In file included from " flc? ":\n") 1 2 3)
-             (node-a ,(concat "^    at [A-Za-z_][^:/()\n]* (" flc-url ")\n") 1 2 3)
-             (node-b ,(concat "^Error [^\n]+imported from " file "\n") 1)
-             (node-c ,(concat "^\\(?:    at \\)?" file-url? nums ":?\n") 1 2 3)
+             (node-a ,(concat "^    +at " flc-url) 1 2 3)
+             (node-b ,(concat "^    +at [A-Za-z_][^:/()\n]* (" flc-url ")") 1 2 3)
+             (node-c ,(concat "^Error [^\n]+imported from " file) 1)
+             (node-d ,(concat "^\\(?:    +at \\)?" file-url? nums ":?") 1 2 3)
              (lua ,(concat "^[^\n :()]+: " file ":" num ": ") 1 2)
+             (lua-tb ,(concat "^	" file ":" num ": ") 1 2)
              (rollup ,(concat "^\\[!\\] Error[^\n]*\n" file " (" num ":" num ")\n") 1 2 3)))
 
           (my-alist (mapcar 'car my-alist-alist)))

@@ -373,6 +373,8 @@ TOP is directory that treespec is relative to."
    "...\n"
    "-TAGS\n"
    "-.../TAGS\n"
+   "-node_modules/...\n"
+   "-.../node_modules/...\n"
    "-(.)...\n"
    "-.../(.)...\n")
   "Default treespec to use when .treespec file is not present in `tree-top'.")
