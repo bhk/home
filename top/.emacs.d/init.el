@@ -618,6 +618,8 @@ names.  Customize with `cwdtrack-regexp'."
 (put 'append-for 'scheme-indent-function 1)
 (put 'foreach 'scheme-indent-function 1)
 
+(add-to-list 'tags-table-list ".TAGS")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Local definitions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
